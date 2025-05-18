@@ -2,11 +2,13 @@ package com.example.auth;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.server.mvc.Viewable;
 //import sun.management.MemoryNotifInfoCompositeData;
 
 import javax.print.attribute.standard.Media;
@@ -15,6 +17,7 @@ import javax.print.attribute.standard.Media;
 public class AuthResource {
     @Context
     private HttpServletRequest request;
+    private HttpServletResponse response;
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String printString() {
@@ -67,6 +70,7 @@ public class AuthResource {
     public Response status() {
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("username") != null) {
+
             return Response.ok("Logged in as: " + session.getAttribute("user")).build();
         }
         return Response.status(Response.Status.UNAUTHORIZED).entity("Not logged in").build();
