@@ -6,10 +6,16 @@
 </head>
 <body>
     <h1>Hi Admin</h1>
-    <button onclick="handleAddDeveloper(e)">Add Developer</button>
+    <h2>Add new developer</h2>
+    <form onsubmit="addNewDev(event)">
+        
+        <input type="text" id="dev-u-name">
+        <input type="password" id="dev-u-pass">
+        <input type="submit">
+    </form>
+
     <script src="js/adminAuth.js"></script>
 
 </body>
 </html>
 
-third commit

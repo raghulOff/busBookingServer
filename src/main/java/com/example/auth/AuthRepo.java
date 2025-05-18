@@ -2,31 +2,32 @@ package com.example.auth;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthRepo {
-    static Map<String, String> usersList = new HashMap<>();
+    private static final Map<String, User> users = new ConcurrentHashMap<>();
 
-    static public boolean storeUser(User user) {
-
-        String user_name = user.getUsername();
-        String user_password = user.getPassword();
-
-        if (usersList.containsKey(user_name)) {
-
-            return false;
-        } else {
-
-            usersList.put(user_name, user_password);
-            return true;
-        }
+    static {
+        // Add a default admin
+        users.put("admin", new User("admin", "admin123", Role.ADMIN));
+    }
+    public static User getUser(String username) {
+        return users.get(username);
     }
 
-    static public boolean loginUser(User user) {
-        String user_name = user.getUsername();
-        String user_password = user.getPassword();
-        if (usersList.containsKey(user_name)) {
-            return usersList.get(user_name).equals(user_password);
-        }
-        return false;
+    public static void addUser(User user) {
+        users.put(user.getUsername(), user);
+    }
+
+    public static void removeUser(String username) {
+        users.remove(username);
+    }
+
+    public static boolean exists(String username) {
+        return users.containsKey(username);
+    }
+
+    public static Map<String, User> getAllUsers() {
+        return users;
     }
 }

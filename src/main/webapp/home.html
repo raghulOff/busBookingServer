@@ -1,12 +1,17 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home page</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Home page</title>
+  <link rel="stylesheet" href="css/home.css" />
 </head>
 <body>
-    <h1>Welcome <h1 id="welcomeName"></h1></h1>
+  <div class="container">
+    <h1>Welcome, <span id="welcomeName"></span></h1>
+    <p>Role: <span id="roleId"></span></p>
     <button onclick="logout()">Logout</button>
-    <script src="js/homeAuth.js"></script>
+  </div>
+  <script src="js/homeAuth.js"></script>
 </body>
 </html>
