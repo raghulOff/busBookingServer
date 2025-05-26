@@ -36,17 +36,17 @@ public class User {
     }
 
 
-    public boolean isAdmin() {
-        return this.role == Role.ADMIN;
-    }
-
-    public boolean isDeveloper() {
-        return this.role == Role.DEVELOPER;
-    }
-
-    public boolean isUser() {
-        return this.role == Role.USER;
-    }
+//    public boolean isAdmin() {
+//        return this.role == Role.ADMIN;
+//    }
+//
+//    public boolean isDeveloper() {
+//        return this.role == Role.DEVELOPER;
+//    }
+//
+//    public boolean isUser() {
+//        return this.role == Role.USER;
+//    }
 
 
 

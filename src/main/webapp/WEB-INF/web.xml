@@ -21,4 +21,15 @@
     <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
 
+<!--  <filter>-->
+<!--    <filter-name>SpaRedirectFilter</filter-name>-->
+<!--    <filter-class>com.example.auth.filter.SpaRedirectFilter</filter-class>-->
+<!--  </filter>-->
+<!--  <filter-mapping>-->
+<!--    <filter-name>SpaRedirectFilter</filter-name>-->
+<!--    <url-pattern>/tryingAuth/*</url-pattern>-->
+<!--  </filter-mapping>-->
+
+
+
 </web-app>

@@ -3,6 +3,8 @@ import com.example.auth.repository.UserRepository;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.auth.security.JwtUtil;
 //import com.example.auth.session.SessionManager;
+import com.example.auth.security.PasswordUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -17,12 +19,19 @@ import javax.print.attribute.standard.Media;
 
 @Path("/user")
 public class AuthResource {
+    @OPTIONS
+    @Path("{any: .*}")
+    public Response handlePreflight() {
+        return Response.ok().build();
+    }
+
 
     @POST
     @Path("/signup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public Response signup(User user) {
+        System.out.println("coming here");
         if (UserRepository.exists(user.getUsername())) {
             return Response.status(Response.Status.CONFLICT).entity("Already exist").build();
         }
@@ -37,14 +46,15 @@ public class AuthResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response login(User userInput) {
         User user = UserRepository.getUser(userInput.getUsername());
-
-        if (user == null || !user.getPassword().equals(userInput.getPassword())) {
+        boolean matchPassword = PasswordUtil.verifyPassword(userInput.getPassword(), user.getPassword());
+        if (user == null || !matchPassword) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid credentials").build();
         }
 
         String token = JwtUtil.generateToken(user);
 
         NewCookie tokenCookie = new NewCookie("token", token, "/", null, null, -1, false, true);
+
         return Response.ok("Login successful").cookie(tokenCookie).build();
     }
 
