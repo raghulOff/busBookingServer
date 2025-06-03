@@ -1,0 +1,1 @@
+.admin-panel{display:flex;height:100vh;background-color:#f4f4f4}.sidebar{width:220px;background-color:#222831;color:#fff;padding:20px}.sidebar ul{list-style:none;padding:0}.sidebar li{margin:15px 0;cursor:pointer;padding:10px;background-color:#393e46;border-radius:6px}.sidebar li:hover{background-color:#00adb5}.content{color:#fff;flex:1;padding:30px;background-color:#000}

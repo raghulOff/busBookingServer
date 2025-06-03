@@ -1,0 +1,88 @@
+body {
+  margin: 0;
+  background-color: #222831;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #EEE;
+}
+
+.home-container {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.welcome-card {
+  background-color: #393E46;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 10px rgb(0 0 0 / 30%);
+  width: 100%;
+  max-width: 800px;
+}
+
+label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+select,
+input[type="date"] {
+  width: 100%;
+  padding: 0.6rem;
+  margin-top: 0.3rem;
+  background-color: #222831;
+  color: #EEE;
+  border: 1px solid #00ADB5;
+  border-radius: 8px;
+  
+}
+
+.auth-button,
+.logout-button,
+.bus-card button {
+  background-color: #00ADB5;
+  color: black;
+  
+  padding: 0.7rem 1.2rem;
+  margin-top: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.auth-button:hover,
+.logout-button:hover,
+.bus-card button:hover {
+  background-color: #008B94;
+}
+
+.bus-list {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.bus-card {
+  background-color: #222831;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgb(0 0 0 / 20%);
+  transition: transform 0.2s ease;
+}
+
+.bus-card:hover {
+  transform: scale(1.02);
+}
+
+.bus-card h3 {
+  margin-top: 0;
+  color: #00ADB5;
+}
+
+.bus-card p {
+  margin: 0.4rem 0;
+}

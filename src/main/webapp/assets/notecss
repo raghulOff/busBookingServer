@@ -1,146 +1,55 @@
-/* Center the auth-container vertically and horizontally */
-body, html {
-  height: 100%;
-  margin: 0;
+body {
+  background-color: rgb(237 236 236 / 76.2%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f8fa;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  
 }
 
 .auth-container {
-  width: 360px;
-  padding: 2.5rem 3.5rem;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 10%);
+  /* justify-content: space-around; */
   text-align: center;
-  border: 1px solid #d1d9e6;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.auth-title {
-  font-size: 2rem;
-  margin: 0;
-  color: #2c3e50;
-  font-weight: 600;
+  margin-top: 8%;
 }
 
 .auth-input {
-  padding: 12px 15px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  color: #2c3e50;
-  outline: none;
-  transition: border-color 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.auth-input:focus {
-  border-color: #2980b9;
-  box-shadow: 0 0 8px rgb(41 128 185 / 30%);
+  height: 30px;
+  width: 200px;
+  padding: 5px;
+  padding-left: 15px;
+  border-radius: 4px;
+  border: 1px solid lightgray;
 }
 
 .auth-button {
-  padding: 14px 0;
-  background-color: #2980b9;
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  letter-spacing: 1.1px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 3px 6px rgb(41 128 185 / 40%);
-  width: 100%;
+  /* background-color: blue;
+  color: white; */
+  border-radius: 10px;
+  padding: 10px;
+  width: 90px;
+  border: 0;
+  background-color: rgb(255 255 255);
+  
 }
 
 .auth-button:hover {
-  background-color: #1c5d8b;
-  box-shadow: 0 6px 12px rgb(28 93 139 / 50%);
-}
-
-.auth-error {
-  color: #e74c3c;
-  font-weight: 600;
-  min-height: 24px;
-  margin: 0;
-}
-
-.auth-switch {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #7f8c8d;
-}
-
-.auth-link {
-  color: #2980b9;
-  font-weight: 600;
-  text-decoration: none;
+  background-color: rgb(218 218 218);
   cursor: pointer;
-}
-
-.auth-link:hover {
-  text-decoration: underline;
-}
-
-
-
-
-
-
-
-/* home.css */
-
-
-
-.home-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-
-  /* background: #f0f4f8; */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.welcome-card {
-  background: #fff;
-  padding: 3rem 4rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 10%);
-  text-align: center;
-  width: 320px;
-  border: 1px solid #d1d9e6;
-}
-
-.welcome-card h2 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: #2c3e50; /* dark slate blue */
-  font-weight: 600;
 }
 
 .logout-button {
-  background-color: #2980b9; /* nice calming blue */
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  cursor: pointer;
-  width: 100%;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 3px 6px rgb(41 128 185 / 40%);
+  background-color: rgb(239 158 158);
+  padding: 15px;
+  border: 0;
+  border-radius: 20px;
+  font: bolder;
+
 }
 
 .logout-button:hover {
-  background-color: #1c5d8b; /* darker blue on hover */
-  box-shadow: 0 6px 12px rgb(28 93 139 / 50%);
+  cursor: pointer;
+  background-color: rgb(232 100 100);
+}
+
+.auth-link {
+  color: rgb(133, 210, 255);
+  text-decoration: none;
 }

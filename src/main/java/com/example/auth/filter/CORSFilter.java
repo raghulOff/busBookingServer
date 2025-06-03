@@ -1,7 +1,10 @@
 package com.example.auth.filter;
 
-import jakarta.ws.rs.container.*;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.ext.Provider;
+
 import java.io.IOException;
 
 @Provider
@@ -12,9 +15,7 @@ public class CORSFilter implements ContainerResponseFilter {
             throws IOException {
 
         String origin = request.getHeaderString("Origin");
-
-        // Allow only a specific origin (not '*') if using credentials
-        if (origin != null && (origin.equals("http://localhost:4200") || origin.equals("http://127.0.0.1:8081"))) {
+        if (origin != null && (origin.equals("http://localhost:4200") || origin.equals("http://localhost:8081"))) {
             response.getHeaders().add("Access-Control-Allow-Origin", origin); // ✅ dynamic origin
             response.getHeaders().add("Access-Control-Allow-Credentials", "true"); // ✅ allow cookies
         }
