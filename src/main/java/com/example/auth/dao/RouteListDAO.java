@@ -12,7 +12,7 @@ import java.util.List;
 public class RouteListDAO {
     public static List<RouteDTO> getRoutes() throws Exception {
         String query = "SELECT \n" +
-                "    r.route_id" +
+                "    r.route_id," +
                 "    c1.city_name AS source_city,\n" +
                 "    c2.city_name AS destination_city,\n" +
                 "    r.distance_km,\n" +

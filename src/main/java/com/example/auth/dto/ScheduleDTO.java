@@ -24,7 +24,6 @@ public class ScheduleDTO {
         this.routeId = routeId;
     }
 
-
     public int getAvailableSeats() {
         return availableSeats;
     }

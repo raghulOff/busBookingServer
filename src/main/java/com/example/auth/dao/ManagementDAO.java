@@ -67,6 +67,7 @@ public class ManagementDAO {
             statement.executeUpdate();
 
         } catch (Exception e) {
+            System.out.println(e);
             return Response.status(Response.Status.CONFLICT).entity("can't insert new schedule").build();
         }
         return Response.status(Response.Status.CREATED).entity("Schedule created").build();

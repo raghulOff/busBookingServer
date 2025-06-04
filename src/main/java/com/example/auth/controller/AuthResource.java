@@ -107,5 +107,4 @@ public class AuthResource {
         return Response.ok("Logout success").cookie(expiredCookie).build();
     }
 
-
 }

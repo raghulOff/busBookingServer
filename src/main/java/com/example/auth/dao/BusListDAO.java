@@ -3,7 +3,9 @@ package com.example.auth.dao;
 import com.example.auth.db.DBConnection;
 import com.example.auth.dto.BusDTO;
 import com.example.auth.dto.BusSearchResponseDTO;
+import jakarta.ws.rs.core.Response;
 
+import java.lang.annotation.Retention;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -87,4 +89,35 @@ public class BusListDAO {
         }
         return allBuses;
     }
+
+
+    public static Response deleteBus(int busId) throws Exception {
+        String query = "delete from buses where bus_id = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(query);
+            statement.setInt(1, busId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            return Response.status(Response.Status.FORBIDDEN).entity("This bus has been assigned a schedule. Please access the schedule section to modify it.").build();
+        }
+        return Response.ok("Bus deleted").build();
+    }
+
+    public static Response updateBus(BusDTO busDTO) throws Exception {
+        String query = "update buses set bus_number = ?, bus_type = ?, total_seats = ?, operator_name = ? where bus_id = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(query);
+            statement.setString(1, busDTO.getBusNo());
+            statement.setString(2, busDTO.getBusType());
+            statement.setInt(3, busDTO.getTotalSeats());
+            statement.setString(4, busDTO.getOperatorName());
+            statement.setInt(5, busDTO.getBusId());
+            statement.executeUpdate();
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Update Unsuccessful. Try again!").build();
+        }
+        return Response.ok("Update Success!").build();
+    }
+
 }
