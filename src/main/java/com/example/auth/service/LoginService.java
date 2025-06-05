@@ -1,6 +1,6 @@
 package com.example.auth.service;
 
-import com.example.auth.dao.UserRepository;
+import com.example.auth.dao.UserDAO;
 import com.example.auth.dto.UserDTO;
 import com.example.auth.model.User;
 import com.example.auth.security.JwtUtil;
@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.Response;
 
 public class LoginService {
     public static Response loginVerification(User userInput) {
-        User user = UserRepository.getUser(userInput.getUsername());
+        User user = UserDAO.getUser(userInput.getUsername());
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }

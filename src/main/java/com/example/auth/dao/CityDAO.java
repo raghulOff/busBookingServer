@@ -2,16 +2,15 @@ package com.example.auth.dao;
 
 import com.example.auth.db.DBConnection;
 import com.example.auth.dto.CityDTO;
+import jakarta.ws.rs.core.Response;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class CityListDAO {
+public class CityDAO {
 //    public static Map<String, String> getCities() throws Exception {
     public static List<CityDTO> getCities() throws Exception {
 
@@ -31,5 +30,20 @@ public class CityListDAO {
             throw e;
         }
         return cities;
+    }
+
+    public static Response addNewCity( CityDTO cityDTO ) {
+        String query = "insert into cities (city_name) values (?)";
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(query);
+            statement.setString(1, cityDTO.getCityName());
+            System.out.println(statement.executeUpdate());
+
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.CONFLICT).entity("city already exist").build();
+        }
+        return Response.status(Response.Status.CREATED).entity("city added").build();
+
     }
 }

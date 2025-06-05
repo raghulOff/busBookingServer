@@ -5,6 +5,9 @@ import com.example.auth.security.PasswordUtil;
 import java.sql.Connection;
 import java.sql.Statement;
 
+
+// NOTE: For demo/testing only. Do NOT use hardcoded admin credentials in production!
+
 public class DBInitializer {
 
     public static void initialize() {
@@ -74,7 +77,8 @@ public class DBInitializer {
                             arrival_time TIMESTAMP NOT NULL,
                             available_seats INT,
                             price NUMERIC(10, 2),
-                            journey_date DATE
+                            journey_date DATE,
+                            UNIQUE (route_id, bus_id, journey_date)
                         );
                     """);
 
@@ -86,14 +90,25 @@ public class DBInitializer {
                     """);
 
             String hashedAdminPassword = PasswordUtil.hashPassword("admin123");
-            String query = "insert into users (username, password) values ('admin','" + hashedAdminPassword + "')";
+            String query = "insert into users (username, password) values ('admin','" + hashedAdminPassword + "')" +
+                    "    ON CONFLICT (username) DO NOTHING;";
             stmt.executeUpdate(query);
+
+
+            String hashUserPassword = PasswordUtil.hashPassword("user");
+
+            stmt.executeUpdate("insert into users (username, password) values ('user', '" + hashUserPassword + "')" +
+                    "    ON CONFLICT (username) DO NOTHING;");
+
 
             stmt.executeUpdate("""
                     insert into user_roles (user_id, role_id) values (1, 1)
+                    ON CONFLICT (user_id, role_id) DO NOTHING;
                     """);
 
-            System.out.println("Database initialization completed.");
+            stmt.executeUpdate("insert into user_roles (user_id, role_id) values (2, 3)" +
+                    "    ON CONFLICT (user_id, role_id) DO NOTHING;\n");
+
 
             stmt.executeUpdate("""
                         INSERT INTO cities (city_name) VALUES
@@ -129,18 +144,15 @@ public class DBInitializer {
 
             stmt.executeUpdate("""
                         INSERT INTO schedules (route_id, bus_id, departure_time, arrival_time, available_seats, price, journey_date)
-                        SELECT 
-                            r.route_id, b.bus_id,
-                            NOW() + INTERVAL '1 day',
-                            NOW() + INTERVAL '1 day' + r.estimated_time,
-                            b.total_seats,
-                            499.00 + (r.distance_km / 2),
-                            CURRENT_DATE + INTERVAL '1 day'
-                        FROM routes r
-                        JOIN buses b ON r.route_id % 5 + 1 = b.bus_id
-                        ON CONFLICT DO NOTHING;
+                        VALUES 
+                            (1, 1, '2025-06-06 08:00:00', '2025-06-06 14:00:00', 40, 600.00, '2025-06-06'),
+                            (2, 2, '2025-06-06 18:00:00', '2025-06-07 05:00:00', 40, 850.00, '2025-06-06'),
+                            (3, 3, '2025-06-06 07:00:00', '2025-06-06 15:00:00', 45, 750.00, '2025-06-06'),
+                            (4, 4, '2025-06-06 06:30:00', '2025-06-06 15:30:00', 50, 720.00, '2025-06-06')
+                        ON CONFLICT (route_id, bus_id, journey_date) DO NOTHING;
                     """);
 
+            System.out.println("Database initialization completed.");
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -7,7 +7,7 @@ import com.example.auth.security.PasswordUtil;
 
 import java.sql.*;
 
-public class UserRepository {
+public class UserDAO {
 
     public static boolean exists(String username) {
         String query = "SELECT 1 FROM users WHERE username = ?";

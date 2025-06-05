@@ -1,7 +1,7 @@
 package com.example.auth.controller;
 
 import com.example.auth.annotation.RolesAllowedCustom;
-import com.example.auth.dao.UserRepository;
+import com.example.auth.dao.UserDAO;
 import com.example.auth.dto.UserDTO;
 import com.example.auth.model.User;
 import com.example.auth.service.LoginService;
@@ -47,7 +47,7 @@ public class AuthResource {
     public Response addUserCheck() {
         String username = (String) request.getAttribute("username");
 
-        User user = UserRepository.getUser(username);
+        User user = UserDAO.getUser(username);
 
         UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
 
@@ -61,7 +61,7 @@ public class AuthResource {
     public Response homeCheck() {
         String username = (String) request.getAttribute("username");
 
-        User user = UserRepository.getUser(username);
+        User user = UserDAO.getUser(username);
         UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
 
         return Response.ok("only user can see this").entity(userdto).build();
@@ -73,7 +73,7 @@ public class AuthResource {
     @RolesAllowedCustom({1})
     public Response adminCheck() {
         String username = (String) request.getAttribute("username");
-        User user = UserRepository.getUser(username);
+        User user = UserDAO.getUser(username);
         UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
 
         return Response.ok("admin can see this").entity(userdto).build();
@@ -84,7 +84,7 @@ public class AuthResource {
     @RolesAllowedCustom({1})
     public Response addDevCheck() {
         String username = (String) request.getAttribute("username");
-        User user = UserRepository.getUser(username);
+        User user = UserDAO.getUser(username);
         UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
         return Response.ok("admin can see this").entity(userdto).build();
     }
@@ -94,7 +94,7 @@ public class AuthResource {
     @RolesAllowedCustom({2})
     public Response devCheck() {
         String username = (String) request.getAttribute("username");
-        User user = UserRepository.getUser(username);
+        User user = UserDAO.getUser(username);
         UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
         return Response.ok("developer can see this").entity(userdto).build();
     }

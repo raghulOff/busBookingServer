@@ -5,13 +5,12 @@ import com.example.auth.dto.BusDTO;
 import com.example.auth.dto.BusSearchResponseDTO;
 import jakarta.ws.rs.core.Response;
 
-import java.lang.annotation.Retention;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BusListDAO {
+public class BusDAO {
     public static List<BusSearchResponseDTO> getAvailableBuses( String from, String to, String doj) throws Exception {
         List<BusSearchResponseDTO> searchResponseList = new ArrayList<>();
         String query = """
@@ -118,6 +117,22 @@ public class BusListDAO {
             return Response.status(Response.Status.BAD_REQUEST).entity("Update Unsuccessful. Try again!").build();
         }
         return Response.ok("Update Success!").build();
+    }
+
+    public static Response addNewBus( BusDTO busDto ) throws Exception {
+        String query = "insert into buses (bus_number, bus_type, total_seats, operator_name) values (?, ?, ?, ?) ";
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(query);
+            statement.setString(1, busDto.getBusNo());
+            statement.setString(2, busDto.getBusType());
+            statement.setInt(3, busDto.getTotalSeats());
+            statement.setString(4, busDto.getOperatorName());
+
+            statement.executeUpdate();
+        } catch (Exception e) {
+            return Response.status(Response.Status.CONFLICT).entity("bus already exist").build();
+        }
+        return Response.ok("new bus added").build();
     }
 
 }
