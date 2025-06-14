@@ -1,6 +1,5 @@
 package com.example.busbooking.db;
 
-import com.example.busbooking.dao.ScheduleDAO;
 import com.example.busbooking.security.PasswordUtil;
 
 
@@ -8,10 +7,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 
+import static com.example.busbooking.dao.bus.BusScheduleDAO.insert_seat_query;
+import static com.example.busbooking.service.GenerateSeats.generateSeatsForSchedule;
+
 
 // NOTE: For demo/testing only. Do NOT use hardcoded admin credentials in production!
 
 public class DBInitializer {
+
 
     public static void initialize() {
 
@@ -126,11 +129,11 @@ public class DBInitializer {
                         booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         total_amount NUMERIC(10, 2),
                         boarding_point_id INT REFERENCES locations(location_id) ON DELETE CASCADE,
-                        dropping_point_id INT REFERENCES locations(location_id) ON DELETE CASCADE
+                        dropping_point_id INT REFERENCES locations(location_id) ON DELETE CASCADE,
+                        trip_status VARCHAR(20) DEFAULT 'UPCOMING'
                     );
                     """);
 
-//            status VARCHAR(20) DEFAULT 'PENDING',
             stmt.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS booking_seats (
                         booking_seat_id SERIAL PRIMARY KEY,
@@ -241,10 +244,10 @@ public class DBInitializer {
 
 
 
-            ScheduleDAO.generateSeatsForSchedule(1, 25, conn);
-            ScheduleDAO.generateSeatsForSchedule(2, 20, conn);
-            ScheduleDAO.generateSeatsForSchedule(3, 22, conn);
-            ScheduleDAO.generateSeatsForSchedule(4, 25, conn);
+            generateSeatsForSchedule(1, 25, conn, insert_seat_query);
+            generateSeatsForSchedule(2, 20, conn, insert_seat_query);
+            generateSeatsForSchedule(3, 22, conn, insert_seat_query);
+            generateSeatsForSchedule(4, 25, conn, insert_seat_query);
 
             PreparedStatement statement = conn.prepareStatement("""
                     update seats set status = true where schedule_id = 2 and seat_id = 36;

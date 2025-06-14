@@ -1,7 +1,7 @@
 package com.example.busbooking.service;
 
-import com.example.busbooking.dao.UserDAO;
-import com.example.busbooking.dto.UserDTO;
+import com.example.busbooking.dao.base.UserDAO;
+import com.example.busbooking.dto.base.UserDTO;
 import com.example.busbooking.model.User;
 import com.example.busbooking.security.JwtUtil;
 import com.example.busbooking.security.PasswordUtil;

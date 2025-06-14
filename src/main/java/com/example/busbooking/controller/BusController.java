@@ -1,10 +1,11 @@
 package com.example.busbooking.controller;
 
 import com.example.busbooking.annotation.RolesAllowedCustom;
-import com.example.busbooking.dao.BusDAO;
-import com.example.busbooking.dto.BusDTO;
-import com.example.busbooking.dto.BusSearchRequestDTO;
-import com.example.busbooking.dto.BusSearchResponseDTO;
+import com.example.busbooking.dao.bus.BusVehicleDAO;
+import com.example.busbooking.dao.base.VehicleDAO;
+import com.example.busbooking.dto.bus.BusSearchRequestDTO;
+import com.example.busbooking.dto.bus.BusSearchResponseDTO;
+import com.example.busbooking.dto.bus.BusVehicleDTO;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -16,6 +17,8 @@ public class BusController {
 
 
 
+    private VehicleDAO vehicleDAO = new BusVehicleDAO();
+
     // this endpoint return buses with details based on the (from, to, doj) input values from user.
     @POST
     @Path("/get-buses")
@@ -23,7 +26,7 @@ public class BusController {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({1,2,3})
     public Response getBuses( BusSearchRequestDTO busSearch ) throws Exception {
-        List<BusSearchResponseDTO> busSearchList = BusDAO.getAvailableBuses(busSearch.getFrom(), busSearch.getTo(), busSearch.getDoj());
+        List<BusSearchResponseDTO> busSearchList = BusVehicleDAO.getAvailableBuses(busSearch.getFrom(), busSearch.getTo(), busSearch.getDoj());
         return Response.ok(busSearchList).build();
     }
 
@@ -35,7 +38,7 @@ public class BusController {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({1,2,3})
     public Response getAllBuses() throws Exception {
-        List<BusDTO> allBuses = BusDAO.getAllBuses();
+        List<BusVehicleDTO> allBuses = vehicleDAO.getAll();
         return Response.ok("got all buses").entity(allBuses).build();
     }
 
@@ -46,7 +49,7 @@ public class BusController {
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowedCustom({1,2})
     public Response deleteBus(@PathParam("busId") int busId) throws Exception {
-            return BusDAO.deleteBus(busId);
+            return vehicleDAO.delete(busId);
     }
 
 
@@ -56,8 +59,8 @@ public class BusController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowedCustom({1,2})
-    public Response updateBus(BusDTO busDTO) throws Exception {
-        return BusDAO.updateBus(busDTO);
+    public Response updateBus( BusVehicleDTO busDTO) throws Exception {
+        return vehicleDAO.update(busDTO);
     }
 
 
@@ -67,8 +70,8 @@ public class BusController {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({1,2})
-    public Response addNewBus( BusDTO busDto ) throws Exception {
-        return BusDAO.addNewBus(busDto);
+    public Response addNewBus( BusVehicleDTO busVehicleDTO ) throws Exception {
+        return vehicleDAO.addNew(busVehicleDTO);
     }
 
 }
