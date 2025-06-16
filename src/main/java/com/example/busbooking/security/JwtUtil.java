@@ -15,6 +15,7 @@ public class JwtUtil {
     private static final String SECRET = rd.getString("jwt.secret_key");
     private static final long EXPIRATION_TIME = 100000000;
 
+    // generates jwt token
     public static String generateToken(User user) {
         return JWT.create()
                 .withSubject(user.getUsername())
@@ -25,6 +26,7 @@ public class JwtUtil {
                 .sign(Algorithm.HMAC256(SECRET));
     }
 
+    // a new verifier is generated with the secret key and verifies it with the token received.
     public static String getSecret() {return SECRET;}
     public static DecodedJWT verifyToken(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(SECRET)).build();

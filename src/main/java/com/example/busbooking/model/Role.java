@@ -5,7 +5,18 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 
 public enum Role {
-    ADMIN,
-    DEVELOPER,
-    USER
+    ADMIN(1),
+    DEVELOPER(2),
+    USER(3);
+
+    private final int id;
+
+    Role(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
 }

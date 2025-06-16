@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class GenerateSeats {
-
+    // When a schedule is created, seats are allocated for that bus.
     public static void generateSeatsForSchedule( int scheduleId, int totalSeats, Connection conn, String insert_seat_query ) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(insert_seat_query);
 

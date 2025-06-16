@@ -9,6 +9,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class ApplicationConfig extends ResourceConfig {
     public ApplicationConfig() {
         packages("com.example.busbooking");
+
+        // creates tables and adds sample values in DB
         DBInitializer.initialize();
     }
 }

@@ -16,6 +16,8 @@ public class BusCityDAO implements CityDAO {
     public static final String get_all_cities_query = "select city_id, city_name from cities order by city_id";
     public static final String add_city_query = "insert into cities (city_name) values (?)";
 
+
+    // returns all new cities
     public List<CityDTO> getCities() throws Exception {
         List<CityDTO> cities = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection()) {
@@ -32,6 +34,7 @@ public class BusCityDAO implements CityDAO {
         return cities;
     }
 
+    // add a new city and returns the response status.
     public Response addNewCity( CityDTO cityDTO ) {
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(add_city_query);

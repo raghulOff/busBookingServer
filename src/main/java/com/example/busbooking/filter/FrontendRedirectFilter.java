@@ -6,6 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 
+// This file is useful when a build output is placed in the webapp folder (/busBookingServer/src/webapp)
+// Any api call to this server is redirected to the index.html file
+// Since the product is still in development mode. The build output is not placed.
+
 @WebFilter("/*")
 public class FrontendRedirectFilter implements Filter {
 

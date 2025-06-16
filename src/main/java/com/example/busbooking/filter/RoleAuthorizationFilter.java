@@ -2,6 +2,7 @@ package com.example.busbooking.filter;
 
 import com.example.busbooking.annotation.RolesAllowedCustom;
 
+import com.example.busbooking.model.Role;
 import com.example.busbooking.service.AvoidPath;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
@@ -13,6 +14,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,8 +39,12 @@ public class RoleAuthorizationFilter implements ContainerRequestFilter {
         String username = (String) requestContext.getProperty("username");
 
         try {
+            List<Integer> allowedRoles = new ArrayList<>();
+            for (Role r : roleAnnotation.value()) {
+                System.out.println(r);
+                allowedRoles.add(r.getId());
+            }
 
-            List<Integer> allowedRoles = Arrays.stream(roleAnnotation.value()).boxed().toList();
             if (!allowedRoles.contains(roleId)) {
                 requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("Insufficient permission").build());
             }

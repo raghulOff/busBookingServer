@@ -4,6 +4,7 @@ import com.example.busbooking.annotation.RolesAllowedCustom;
 import com.example.busbooking.dao.bus.BusScheduleDAO;
 import com.example.busbooking.dao.base.ScheduleDAO;
 import com.example.busbooking.dto.base.ScheduleDTO;
+import com.example.busbooking.model.Role;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -19,7 +20,7 @@ public class ScheduleController {
     @GET
     @Path("/get-schedules")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({1,2,3})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
     public Response getSchedules() throws Exception {
         List<ScheduleDTO> allSchedules = scheduleDAO.getSchedules();
         return Response.ok("Got all schedules").entity(allSchedules).build();
@@ -30,7 +31,7 @@ public class ScheduleController {
     @Path("/add-schedule")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({1,2})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
     public Response addSchedule( ScheduleDTO scheduleDto) throws Exception {
         return scheduleDAO.addNewSchedule(scheduleDto);
     }
@@ -40,7 +41,7 @@ public class ScheduleController {
     @GET
     @Path("/{scheduleId}/details")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({1,2,3})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
     public Response getScheduleDetails(@PathParam("scheduleId") int scheduleId) {
         return scheduleDAO.getScheduleDetails(scheduleId);
     }

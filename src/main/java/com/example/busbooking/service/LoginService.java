@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 
 public class LoginService {
+    // this method verifies the username and password of a user and return user_id, role_id, username;
     public static Response loginVerification(User userInput) {
         User user = UserDAO.getUser(userInput.getUsername());
         if (user == null) {

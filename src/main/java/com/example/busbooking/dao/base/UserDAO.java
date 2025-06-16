@@ -4,13 +4,17 @@ import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.model.Role;
 import com.example.busbooking.model.User;
 import com.example.busbooking.security.PasswordUtil;
+import jakarta.ws.rs.core.Response;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserDAO {
 
 
-    public static final String check_user_exist_query = "SELECT 1 FROM users WHERE username = ?";
     public static final String insert_un_pass_query = "INSERT INTO users (username, password) VALUES (?, ?)";
     public static final String select_role_id_query = "SELECT role_id FROM roles WHERE role_name = ?";
     public static final String insert_user_role_query = "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)";
@@ -19,24 +23,10 @@ public class UserDAO {
             "JOIN user_roles ur ON u.user_id = ur.user_id " +
             "JOIN roles r ON ur.role_id = r.role_id " +
             "WHERE u.username = ?";
-    public static boolean exists(String username) {
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(check_user_exist_query)) {
-
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-
-            return rs.next(); // true if user exists
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            return false;
-        }
-    }
 
 
+
+    // adding new user with any role
     public static void addUser(User user) {
         Connection conn = null;
         PreparedStatement insertUserStmt = null;
@@ -81,7 +71,7 @@ public class UserDAO {
     }
 
 
-
+    // retrieving user from DB
     public static User getUser(String username) {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(get_user_details_query)) {
@@ -103,6 +93,25 @@ public class UserDAO {
         }
         return null;
     }
+
+
+    // Returns all the available roles.
+    public static Response getRoles() {
+        List<Map<String, Object>> roles = new ArrayList<>();
+        for (Role r : Role.values()) {
+            Map<String, Object> role = new HashMap<>();
+            role.put("roleId", r.getId());
+            role.put("roleName", r.name());
+
+            roles.add(role);
+        }
+
+        return Response.ok("Got all the roles").entity(roles).build();
+    }
+
+
+
+
 
 
 }

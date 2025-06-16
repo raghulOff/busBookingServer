@@ -3,6 +3,7 @@ package com.example.busbooking.controller;
 import com.example.busbooking.annotation.RolesAllowedCustom;
 import com.example.busbooking.dao.base.UserDAO;
 import com.example.busbooking.dto.base.UserDTO;
+import com.example.busbooking.model.Role;
 import com.example.busbooking.model.User;
 import com.example.busbooking.service.LoginService;
 import com.example.busbooking.service.SignupService;
@@ -49,7 +50,7 @@ public class AuthController {
     // visiting home page triggers this endpoint to check if the user has access to this page. Returns the user data
     @GET
     @Path("/home")
-    @RolesAllowedCustom({3})
+    @RolesAllowedCustom({Role.USER})
     public Response homeCheck() {
         String username = (String) request.getAttribute("username");
         UserDTO userdto = null;
@@ -69,7 +70,7 @@ public class AuthController {
 
     @GET
     @Path("/book-bus")
-    @RolesAllowedCustom({3})
+    @RolesAllowedCustom({Role.USER})
     public Response bookPageCheck() {
         String username = (String) request.getAttribute("username");
         User user = UserDAO.getUser(username);
@@ -83,7 +84,7 @@ public class AuthController {
 
     @GET
     @Path("/admin-home")
-    @RolesAllowedCustom({1})
+    @RolesAllowedCustom({Role.ADMIN})
     public Response adminCheck() {
         String username = (String) request.getAttribute("username");
         User user = UserDAO.getUser(username);
@@ -97,7 +98,7 @@ public class AuthController {
 
     @GET
     @Path("/dev-home")
-    @RolesAllowedCustom({2})
+    @RolesAllowedCustom({Role.DEVELOPER})
     public Response devCheck() {
         String username = (String) request.getAttribute("username");
         User user = UserDAO.getUser(username);
@@ -110,7 +111,7 @@ public class AuthController {
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({1,2,3})
+    @RolesAllowedCustom({Role.USER, Role.DEVELOPER, Role.ADMIN})
     public Response logout() {
         NewCookie expiredCookie = new NewCookie("token", "", "/", null, null, 0, false);
         return Response.ok("Logout success").cookie(expiredCookie).build();
@@ -120,7 +121,7 @@ public class AuthController {
     @GET
     @Path("/bookings")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({3})
+    @RolesAllowedCustom({Role.USER})
     public Response bookingHistoryCheck() {
         String username = (String) request.getAttribute("username");
         User user = UserDAO.getUser(username);
@@ -130,5 +131,12 @@ public class AuthController {
     }
 
 
+    @GET
+    @Path("/get-roles")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowedCustom({Role.ADMIN})
+    public Response getRoles() {
+        return UserDAO.getRoles();
+    }
 
 }

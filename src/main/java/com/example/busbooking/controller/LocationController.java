@@ -4,6 +4,7 @@ package com.example.busbooking.controller;
 import com.example.busbooking.annotation.RolesAllowedCustom;
 import com.example.busbooking.dao.base.LocationDAO;
 import com.example.busbooking.dao.bus.BusLocationDAO;
+import com.example.busbooking.model.Role;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -16,7 +17,7 @@ public class LocationController {
     @GET
     @Path("/get-schedule-locations/{id}/{type}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({1,2,3})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
     public Response getScheduleLocations(@PathParam("id") int ScheduleId, @PathParam("type") int type) throws Exception {
         // type = 1 boarding
         // type = 0 dropping

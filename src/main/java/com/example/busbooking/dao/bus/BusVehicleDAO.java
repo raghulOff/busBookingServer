@@ -42,6 +42,7 @@ public class BusVehicleDAO implements VehicleDAO {
     public static final String add_bus_query = "insert into buses (bus_number, bus_type, total_seats, operator_name) values (?, ?, ?, ?) ";
 
 
+    // returns the available buses particular to source, destination and date of journey.
     public static List<BusSearchResponseDTO> getAvailableBuses( String from, String to, String doj) throws Exception {
         List<BusSearchResponseDTO> searchResponseList = new ArrayList<>();
 
@@ -78,7 +79,7 @@ public class BusVehicleDAO implements VehicleDAO {
     }
 
 
-
+    // returns all the buses available.
     public List<BusVehicleDTO> getAll() throws Exception {
         List<BusVehicleDTO> allBuses = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection()) {
@@ -90,7 +91,7 @@ public class BusVehicleDAO implements VehicleDAO {
                 String busType = rs.getString("bus_type");
                 int total_seats = rs.getInt("total_seats");
                 String op_name = rs.getString("operator_name");
-                allBuses.add(new BusVehicleDTO(busNumber, total_seats, op_name, busId, op_name));
+                allBuses.add(new BusVehicleDTO(busNumber, total_seats, op_name, busId, busType));
             }
         } catch (Exception e) {
             throw e;
@@ -99,6 +100,8 @@ public class BusVehicleDAO implements VehicleDAO {
     }
 
 
+
+    // deletes an existing bus
     public Response delete(int busId) throws Exception {
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(delete_bus_query);
@@ -110,6 +113,7 @@ public class BusVehicleDAO implements VehicleDAO {
         return Response.ok("Bus deleted").build();
     }
 
+    // updates an existing bus.
     public Response update( BusVehicleDTO busVehicleDTO) throws Exception {
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(update_bus_query);
@@ -126,6 +130,8 @@ public class BusVehicleDAO implements VehicleDAO {
         return Response.ok("Update Success!").build();
     }
 
+
+    // Adds a new bus
     public Response addNew( BusVehicleDTO busVehicleDTO ) throws Exception {
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(add_bus_query);

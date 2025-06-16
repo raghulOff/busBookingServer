@@ -19,6 +19,7 @@ public class BusLocationDAO implements LocationDAO {
                 join locations l on l.location_id = s.location_id
                 where (s.schedule_id = ? and s.type = ?)
                 """;
+    // this returns the boarding and dropping points of a specific schedule.
     public Response getScheduleLocations( int scheduleId, int type ) {
 
         // type = 1 boarding

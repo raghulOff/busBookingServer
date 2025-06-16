@@ -40,6 +40,7 @@ public class BusRouteDAO implements RouteDAO {
             "    estimated_time = ?\n" +
             "WHERE route_id = ?;";
 
+    // returns all the available routes;
     public List<RouteDTO> getRoutes() throws Exception {
         List<RouteDTO> allroutes = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection()) {
@@ -59,6 +60,8 @@ public class BusRouteDAO implements RouteDAO {
         return allroutes;
     }
 
+
+    // adds a new route
     public Response addNewRoute( RouteDTO routeDTO ) throws SQLException {
 
 
@@ -79,6 +82,7 @@ public class BusRouteDAO implements RouteDAO {
     }
 
 
+    // deletes a route
     public Response deleteRoute(int routeId) throws Exception {
         try (Connection conn = DBConnection.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(delete_route_query);
@@ -91,6 +95,8 @@ public class BusRouteDAO implements RouteDAO {
         return Response.ok("Delete success").build();
     }
 
+
+    // updates the values of existing route.
     public Response updateRoute(RouteDTO routeDTO) throws Exception {
 
 

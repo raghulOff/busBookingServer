@@ -45,6 +45,8 @@ public class BusScheduleDAO implements ScheduleDAO {
                     WHERE schedule_id = ? order by row_number, column_number
                 """;
 
+
+    // all available schedules are returned.
     public List<ScheduleDTO> getSchedules() throws Exception {
 
         List<ScheduleDTO> allSchedules = new ArrayList<>();
@@ -69,6 +71,7 @@ public class BusScheduleDAO implements ScheduleDAO {
         return allSchedules;
     }
 
+    // adds a new schedule
     public Response addNewSchedule( ScheduleDTO scheduleDTO ) throws Exception {
         LocalDate journeyDate = LocalDate.parse(scheduleDTO.getJourneyDate());
         LocalDateTime departure = LocalDateTime.parse(scheduleDTO.getDepartureTime());
@@ -100,7 +103,7 @@ public class BusScheduleDAO implements ScheduleDAO {
     }
 
 
-
+    // The details of a specific schedule is returned.
     public Response getScheduleDetails( int scheduleId ) {
 
         try (Connection conn = DBConnection.getConnection()) {

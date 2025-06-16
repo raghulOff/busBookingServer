@@ -4,6 +4,7 @@ import com.example.busbooking.annotation.RolesAllowedCustom;
 import com.example.busbooking.dao.bus.BusRouteDAO;
 import com.example.busbooking.dao.base.RouteDAO;
 import com.example.busbooking.dto.base.RouteDTO;
+import com.example.busbooking.model.Role;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -18,7 +19,7 @@ public class RouteController {
     @GET
     @Path("/get-routes")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({1,2,3})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
     public Response getSchedules() throws Exception {
         List<RouteDTO> allRoutes = routeDAO.getRoutes();
         return Response.ok("Got all routes").entity(allRoutes).build();
@@ -30,7 +31,7 @@ public class RouteController {
     @Path("/add-route")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({1,2})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
     public Response addRoute( RouteDTO routeDto) throws Exception {
         return routeDAO.addNewRoute(routeDto);
     }
@@ -40,7 +41,7 @@ public class RouteController {
     @DELETE
     @Path("/delete-route/{routeId}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({1,2})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
     public Response deleteRoute(@PathParam("routeId") int routeId) throws Exception {
         return routeDAO.deleteRoute(routeId);
     }
@@ -50,7 +51,7 @@ public class RouteController {
     @PUT
     @Path("/update-route")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({1,2})
+    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
     public Response updateRoute( RouteDTO routeDTO ) throws Exception {
         return routeDAO.updateRoute(routeDTO);
     }
