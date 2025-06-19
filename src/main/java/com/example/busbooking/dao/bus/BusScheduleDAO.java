@@ -7,6 +7,8 @@ import com.example.busbooking.dto.bus.BusScheduleDetailsDTO;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.core.Response;
 import org.jvnet.hk2.annotations.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -44,6 +46,7 @@ public class BusScheduleDAO implements ScheduleDAO {
             join seat_type st on st.seat_type_id = s.seat_type_id
                      where sg.bus_id = ? order by s.seat_id asc;
             """;
+
 
 
     // all available schedules are returned.
@@ -151,7 +154,7 @@ public class BusScheduleDAO implements ScheduleDAO {
             return Response.ok(sd).build();
 
         } catch (Exception e) {
-            System.err.println(e);
+            System.out.println(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Something went wrong").build();
         }
     }

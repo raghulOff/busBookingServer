@@ -39,9 +39,14 @@ public class AuthFilter implements ContainerRequestFilter {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Missing token").build());
             return;
         }
+        try {
+            JwtUtil.verifyToken(token);
+        } catch (Exception e) {
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Token has expired").build());
+            return;
+        }
         String jti = JwtUtil.getJtiFromToken(token);
 
-        System.out.println("token id: " + jti);
         if (BlackListService.isBlacklisted(jti)) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Token is invalidated").build());
         }

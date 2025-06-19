@@ -6,6 +6,7 @@ import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.dto.bus.BusSearchResponseDTO;
 import com.example.busbooking.dto.bus.BusVehicleDTO;
 import com.example.busbooking.service.AddBusService;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 
 import java.math.BigDecimal;
@@ -43,6 +44,9 @@ public class BusVehicleDAO implements VehicleDAO {
 
     // returns the available buses particular to source, destination and date of journey.
     public static List<BusSearchResponseDTO> getAvailableBuses( String from, String to, String doj) throws Exception {
+        if (from.isEmpty() || to.isEmpty() || doj.isEmpty()) {
+            throw new BadRequestException("Invalid input");
+        }
         List<BusSearchResponseDTO> searchResponseList = new ArrayList<>();
 
 

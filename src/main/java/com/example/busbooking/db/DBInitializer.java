@@ -49,7 +49,7 @@ public class DBInitializer {
         }
 
         // Column 2: LOWER - 10 Seater seats
-        for (int row = 1; row <= 5; row++) {
+        for (int row = 1; row <= 10; row++) {
             seatDetails.add(new BusVehicleDTO.SeatDetails(row, 1, 2, "LOWER")); // Seater
         }
 
@@ -59,7 +59,7 @@ public class DBInitializer {
         }
 
         // Column 3: LOWER - 10 Seater seats
-        for (int row = 1; row <= 5; row++) {
+        for (int row = 1; row <= 10; row++) {
             seatDetails.add(new BusVehicleDTO.SeatDetails(row, 1, 3, "LOWER")); // Seater
         }
 
@@ -82,7 +82,7 @@ public class DBInitializer {
         try {
             conn = DBConnection.getConnection();
             Statement stmt = conn.createStatement();
-//            conn.setAutoCommit(false);
+
 
             stmt.executeUpdate("""
                         CREATE TABLE IF NOT EXISTS users (
@@ -349,13 +349,13 @@ public class DBInitializer {
             );
 
             stopStmt.executeUpdate();
-//            conn.commit();
+
             System.out.println("Database initialization completed.");
+
 
         } catch (Exception e) {
             e.printStackTrace();
-//            conn.rollback();
-//            conn.close();
+
             System.err.println("Database initialization failed.");
         }
     }

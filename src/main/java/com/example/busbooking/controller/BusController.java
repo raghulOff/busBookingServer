@@ -39,6 +39,7 @@ public class BusController {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
     public Response getAllBuses() throws Exception {
+
         List<BusVehicleDTO> allBuses = vehicleDAO.getAll();
         return Response.ok("got all buses").entity(allBuses).build();
     }
@@ -50,7 +51,7 @@ public class BusController {
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
     public Response deleteBus(@PathParam("busId") int busId) throws Exception {
-            return vehicleDAO.delete(busId);
+        return vehicleDAO.delete(busId);
     }
 
 

@@ -12,7 +12,14 @@ import java.sql.SQLException;
 @ApplicationPath("/api")
 public class ApplicationConfig extends ResourceConfig {
     public ApplicationConfig() throws SQLException {
+        packages("com.example.busbooking");
+        register(JacksonFeature.class);
+//        register(JacksonFeature.withoutExceptionMappers());
+//        register(JsonParseExceptionMapper.class);
+//        register(JsonMappingExceptionMapper.class);
+//        register(JacksonJaxbJsonProvider.class);
 
+        // creates tables and adds sample values in DB
         DBInitializer.initialize();
     }
 
