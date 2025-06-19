@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Map;
 
 
-@Path("/book")
+@Path("/bookings")
 public class BookController {
     private final BookingsDAO bookingsDAO = new BusBookingsDAO();
 

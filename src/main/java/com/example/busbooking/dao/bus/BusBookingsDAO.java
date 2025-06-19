@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class BusBookingsDAO implements BookingsDAO {
 
+    // this query will result in all the bookings done by a specific user
     public static final String get_bookings_query = """
             select b.booking_id, s.journey_date, b.total_amount, bus.operator_name, sc.city_name as src, dc.city_name as destination,
             s.arrival_time, s.departure_time, lb.location_name as boarding, ld.location_name as dropping
@@ -33,6 +34,7 @@ public class BusBookingsDAO implements BookingsDAO {
             where b.user_id = ? order by b.booking_id desc;
             """;
 
+    // query to retrieve passenger details of both booking id and user id combined;
     public static final String get_passenger_details_query = """
             select s.seat_id, s.seat_number, p.passenger_name, p.passenger_age, b.booking_id, bs.status
             from booking_seats bs
@@ -43,33 +45,42 @@ public class BusBookingsDAO implements BookingsDAO {
             """;
 
 
+    // query to insert a new booking in bookings table
     public static final String booking_insert_query = "insert into bookings\n" +
             "(user_id, schedule_id, total_amount, boarding_point_id, dropping_point_id, trip_status)\n" +
             "values (?, ?, ?, ?, ?, 'UPCOMING');";
 
+    // inserts the passenger data into passenger_details table
     public static final String passenger_insert_query = "insert into passenger_details (passenger_name, passenger_age)\n" +
             "values (?, ?);";
 
+    // this inserts and maps every passenger with seat id and booking id;
     public static final String booking_seats_insert_query = "insert into booking_seats (booking_id, seat_id, passenger_id, status)\n" +
             "values (?, ?, ?, ?);";
 
-    public static final String seat_update_query = "update seats set status = true, user_id = ? where seat_id = ?;";
+    // updates a seat from available to booked;
+    public static final String seat_update_query = "update seats set status = 'BOOKED' where seat_id = ?;";
 
-    public static final String update_available_seats_query = "update schedules set available_seats = available_seats-? where schedule_id = ?";
-
-
+    // query to cancel the seat of a booked id in the booking_seats table
     public static final String update_booking_seats_status_query = "update booking_seats set status = 'CANCELLED' where seat_id = ?";
 
-    public static final String update_seats_status_user_id_query = "update seats set status = false, user_id = null where seat_id = ?";
+    // query to make the seat available again in the seats table.
+    public static final String update_seats_status_user_id_query = "update seats set status = 'AVAILABLE' where seat_id = ?";
+
+
 
 
     // To retrieve all the history of bookings for a user id;
     public Response getAllBookings( int userId ) {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement statement = conn.prepareStatement(get_bookings_query)) {
+
             statement.setInt(1, userId);
+
             ResultSet rs = statement.executeQuery();
+
             List<BookingsDTO> bookings = new ArrayList<>();
+
             while (rs.next()) {
                 String journeyDate = rs.getString("journey_date");
                 double totalAmount = rs.getDouble("total_amount");
@@ -145,27 +156,36 @@ public class BusBookingsDAO implements BookingsDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            try (PreparedStatement statement = conn.prepareStatement(update_available_seats_query);) {
-                statement.setInt(1, bookSeatDTO.getPassengerDetails().size());
-                statement.setInt(2, bookSeatDTO.getScheduleId());
-                statement.executeUpdate();
-            }
-
+            // adds a new booking to the bookings table and returns back the generated booking id;
             int bookingId = BookSeatService.addNewBooking(conn, bookSeatDTO);
 
+            // traversing through all the passenger details consumed from the client
             for (BookSeatDTO.PassengerDetailsDTO passengerDetail : bookSeatDTO.getPassengerDetails()) {
 
-                if (BookSeatService.checkSeatStatus(passengerDetail.getSeatId(), conn)) {
-                    throw new Exception();
+                // checks if the passenger details are valid;
+                if (passengerDetail.getPassengerAge() < 1 || passengerDetail.getPassengerAge() > 100) {
+                    throw new Exception("Invalid passenger age.");
+                } else if (passengerDetail.getPassengerName().isEmpty()) {
+                    throw new Exception("Passenger name is empty. Invalid!");
                 }
+
+
+                // checks if the seat is already booked or not
+                if (BookSeatService.checkSeatStatus(passengerDetail.getSeatId(), conn)) {
+                    throw new Exception("Seat already booked");
+                }
+
+                // add a new passenger in the passenger_details table and returns back the generated passenger id;
                 int passengerId = BookSeatService.addNewPassenger(conn, passengerDetail);
 
-
+                // inserting into the booking_seats table to map with passenger and seats;
                 BookSeatService.insertBookingSeats(conn, bookingId, passengerId, passengerDetail);
 
+
+                // changes the seat status in the seats table to booked
                 PreparedStatement updateSeatStatement = conn.prepareStatement(seat_update_query);
-                updateSeatStatement.setInt(1, bookSeatDTO.getUserId());
-                updateSeatStatement.setInt(2, passengerDetail.getSeatId());
+
+                updateSeatStatement.setInt(1, passengerDetail.getSeatId());
                 updateSeatStatement.executeUpdate();
             }
 
@@ -181,7 +201,7 @@ public class BusBookingsDAO implements BookingsDAO {
             } catch (Exception rollbackEx) {
                 System.err.println("Rollback failed: " + rollbackEx);
             }
-            return Response.status(Response.Status.EXPECTATION_FAILED).entity("Cannot book seats.").build();
+            return Response.status(Response.Status.EXPECTATION_FAILED).entity("Cannot book seats. Something went wrong.").build();
         } finally {
             if (conn != null) {
                 try {
@@ -214,8 +234,6 @@ public class BusBookingsDAO implements BookingsDAO {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
 
 
 }

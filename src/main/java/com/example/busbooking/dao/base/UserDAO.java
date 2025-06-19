@@ -27,7 +27,7 @@ public class UserDAO {
 
 
     // adding new user with any role
-    public static void addUser(User user) {
+    public static void addUser(User user) throws Exception {
         Connection conn = null;
         PreparedStatement insertUserStmt = null;
         PreparedStatement getRoleIdStmt = null;
@@ -35,6 +35,7 @@ public class UserDAO {
 
         try {
             conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
 
             String hashPassword = PasswordUtil.hashPassword(user.getPassword());
             insertUserStmt = conn.prepareStatement(insert_un_pass_query, Statement.RETURN_GENERATED_KEYS);
@@ -48,27 +49,39 @@ public class UserDAO {
             }
             int userId = generatedKeys.getInt(1);
 
-
             getRoleIdStmt = conn.prepareStatement(select_role_id_query);
-            getRoleIdStmt.setString(1, user.getRole().name().toUpperCase()); // role names like "admin"
+            getRoleIdStmt.setString(1, user.getRole().name().toUpperCase());
             ResultSet roleRs = getRoleIdStmt.executeQuery();
             if (!roleRs.next()) {
                 throw new SQLException("Role not found: " + user.getRole().name());
             }
             int roleId = roleRs.getInt("role_id");
 
-
             insertUserRoleStmt = conn.prepareStatement(insert_user_role_query);
             insertUserRoleStmt.setInt(1, userId);
             insertUserRoleStmt.setInt(2, roleId);
             insertUserRoleStmt.executeUpdate();
 
-
+            conn.commit(); // Commit transaction
             System.out.println("User added and role mapped.");
         } catch (Exception e) {
-            e.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback(); // Roll back if error occurs
+                } catch (Exception rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+
+            if (insertUserStmt != null) insertUserStmt.close();
+            if (getRoleIdStmt != null) getRoleIdStmt.close();
+            if (insertUserRoleStmt != null) insertUserRoleStmt.close();
+            if (conn != null) conn.close();
         }
     }
+
 
 
     // retrieving user from DB
@@ -108,10 +121,5 @@ public class UserDAO {
 
         return Response.ok("Got all the roles").entity(roles).build();
     }
-
-
-
-
-
 
 }

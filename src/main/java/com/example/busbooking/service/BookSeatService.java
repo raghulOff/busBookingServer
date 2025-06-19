@@ -7,7 +7,7 @@ import java.sql.*;
 import static com.example.busbooking.dao.bus.BusBookingsDAO.*;
 
 
-// Service or helper methods in the process of booking seats;
+// Service method in the process of booking seats;
 
 
 public class BookSeatService {
@@ -16,8 +16,7 @@ public class BookSeatService {
             select status from seats where seat_id = ?;
             """;
 
-
-
+    // adds new booking into the bookings table
     public static int addNewBooking( Connection conn, BookSeatDTO bookSeatDTO ) throws SQLException {
         PreparedStatement book_statement = conn.prepareStatement(booking_insert_query, Statement.RETURN_GENERATED_KEYS);
         book_statement.setInt(1, bookSeatDTO.getUserId());
@@ -35,6 +34,7 @@ public class BookSeatService {
         return bookingId;
     }
 
+    // adds a new passenger mapped in the booking_seats table
     public static int addNewPassenger(Connection conn, BookSeatDTO.PassengerDetailsDTO passengerDetail) throws SQLException {
         PreparedStatement passengerStatement = conn.prepareStatement(passenger_insert_query, Statement.RETURN_GENERATED_KEYS);
         passengerStatement.setString(1, passengerDetail.getPassengerName());
@@ -49,6 +49,7 @@ public class BookSeatService {
     }
 
 
+    // creates a new row in the booking_seats table and maps the seat_id, passenger_id, booking_id and status;
     public static void insertBookingSeats( Connection conn, int bookingId, int passengerId, BookSeatDTO.PassengerDetailsDTO passengerDetail ) throws SQLException {
         PreparedStatement seatsStatement = conn.prepareStatement(booking_seats_insert_query);
         seatsStatement.setInt(1, bookingId);
@@ -62,15 +63,17 @@ public class BookSeatService {
 
 
 
-
+    // checks if a seat is available or not
     public static boolean checkSeatStatus( int seatId, Connection conn ) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(check_seat_status_query);
         statement.setInt(1, seatId);
 
         ResultSet rs = statement.executeQuery();
         if (rs.next()) {
-            return rs.getBoolean("status");
+            if (rs.getString("status").equals("AVAILABLE")) {
+                return false;
+            }
         }
-        return false;
+        return true;
     }
 }

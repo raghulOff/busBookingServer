@@ -2,7 +2,7 @@ package com.example.busbooking.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.busbooking.security.JwtUtil;
-import com.example.busbooking.service.AvoidPath;
+import com.example.busbooking.service.BlackListService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -25,8 +25,8 @@ public class AuthFilter implements ContainerRequestFilter {
 
 
         String path = requestContext.getUriInfo().getPath();
-        System.out.println(path);
-        if (!AvoidPath.avoidPath(path)) {
+
+        if (path.contains("login") || path.contains("signup")) {
             return;
         }
 
@@ -38,6 +38,12 @@ public class AuthFilter implements ContainerRequestFilter {
         if (token == null) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Missing token").build());
             return;
+        }
+        String jti = JwtUtil.getJtiFromToken(token);
+
+        System.out.println("token id: " + jti);
+        if (BlackListService.isBlacklisted(jti)) {
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Token is invalidated").build());
         }
 
         try {

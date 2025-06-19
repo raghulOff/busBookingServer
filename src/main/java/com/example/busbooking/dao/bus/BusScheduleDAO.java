@@ -14,36 +14,36 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.busbooking.service.GenerateSeats.generateSeatsForSchedule;
 
-
-@Service
-@Singleton
 public class BusScheduleDAO implements ScheduleDAO {
-    public static final String select_all_schedules_query = "select schedule_id, route_id, bus_id, departure_time, arrival_time, available_seats, price, journey_date\n" +
+    public static final String select_all_schedules_query = "select schedule_id, route_id, bus_id, departure_time, arrival_time, price, journey_date\n" +
             "from schedules";
 
-    public static final String add_schedule_query = "insert into schedules (route_id, bus_id, departure_time, arrival_time, available_seats, price, journey_date)\n" +
-            "values (?, ?, ?, ?, ?, ?, ?)";
+    public static final String add_schedule_query = "insert into schedules (route_id, bus_id, departure_time, arrival_time, price, journey_date)\n" +
+            "values (?, ?, ?, ?, ?, ?)";
 
     public static final String insert_seat_query = "INSERT INTO seats (schedule_id, seat_number, row_number, column_number, status) VALUES (?, ?, ?, ?, false)" +
             " ON CONFLICT (schedule_id, row_number, column_number) DO NOTHING";
 
     public static final String get_schedule_details_query = """
-                SELECT s.price, sc.city_name as source_city, dc.city_name as destination_city, b.bus_type, b.operator_name, s.schedule_id, b.bus_number, s.departure_time, s.arrival_time, s.available_seats
-                FROM schedules s
-                JOIN buses b ON s.bus_id = b.bus_id
-                JOIN routes r on s.route_id = r.route_id
-                JOIN cities sc on r.source_city_id = sc.city_id
-                JOIN cities dc on r.destination_city_id = dc.city_id
-                WHERE s.schedule_id = ?
-                """;
+            SELECT r.route_id, b.bus_id, s.price, sc.city_name as source_city, dc.city_name as destination_city, b.bus_type, b.operator_name,
+            s.schedule_id, b.bus_number, s.departure_time, s.arrival_time, s.journey_date, b.total_columns
+            FROM schedules s
+            JOIN buses b ON s.bus_id = b.bus_id
+            JOIN routes r on s.route_id = r.route_id
+            JOIN cities sc on r.source_city_id = sc.city_id
+            JOIN cities dc on r.destination_city_id = dc.city_id
+            WHERE s.schedule_id = ?
+            """;
+
 
     public static final String get_seat_details_query = """
-                    SELECT seat_id, seat_number, status, row_number, column_number
-                    FROM seats
-                    WHERE schedule_id = ? order by row_number, column_number
-                """;
+                     select s.row_number, sg.col_number, sg.pos, s.seat_type_id, s.seat_number, s.status, s.seat_id, st.seat_type_name
+                     from seats s
+                     join seat_grid_columns sg on s.column_id = sg.column_id
+            join seat_type st on st.seat_type_id = s.seat_type_id
+                     where sg.bus_id = ? order by s.seat_id asc;
+            """;
 
 
     // all available schedules are returned.
@@ -60,10 +60,9 @@ public class BusScheduleDAO implements ScheduleDAO {
                 int busid = rs.getInt("bus_id");
                 String dep_time = rs.getString("departure_time");
                 String arr_time = rs.getString("arrival_time");
-                int av_seats = rs.getInt("available_seats");
                 double price = rs.getDouble("price");
                 String journeyDate = rs.getString("journey_date");
-                allSchedules.add(new ScheduleDTO(schedule_id, routeid, busid, dep_time, arr_time, av_seats, price, journeyDate));
+                allSchedules.add(new ScheduleDTO(schedule_id, routeid, busid, dep_time, arr_time, price, journeyDate));
             }
         } catch (Exception e) {
             throw e;
@@ -84,15 +83,10 @@ public class BusScheduleDAO implements ScheduleDAO {
             statement.setInt(2, scheduleDTO.getBusId());
             statement.setTimestamp(3, java.sql.Timestamp.valueOf(departure));
             statement.setTimestamp(4, java.sql.Timestamp.valueOf(arrival));
-            statement.setInt(5, scheduleDTO.getAvailableSeats());
-            statement.setDouble(6, scheduleDTO.getPrice());
-            statement.setDate(7, java.sql.Date.valueOf(journeyDate));
+            statement.setDouble(5, scheduleDTO.getPrice());
+            statement.setDate(6, java.sql.Date.valueOf(journeyDate));
             statement.executeUpdate();
-            ResultSet generatedKeys = statement.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                int scheduleId = generatedKeys.getInt(1);
-                generateSeatsForSchedule(scheduleId, scheduleDTO.getAvailableSeats(), conn, insert_seat_query);
-            }
+
 
             conn.commit();
         } catch (Exception e) {
@@ -101,6 +95,8 @@ public class BusScheduleDAO implements ScheduleDAO {
         }
         return Response.ok().entity("Schedule created").build();
     }
+
+
 
 
     // The details of a specific schedule is returned.
@@ -122,28 +118,35 @@ public class BusScheduleDAO implements ScheduleDAO {
             List<BusScheduleDetailsDTO.SeatDTO> seats = new ArrayList<>();
             while (seatrs.next()) {
                 seats.add(new BusScheduleDetailsDTO.SeatDTO(
+                        seatrs.getString("seat_type_name"),
+                        seatrs.getInt("seat_type_id"),
+                        seatrs.getString("pos"),
                         seatrs.getString("seat_number"),
-                        seatrs.getBoolean("status"),
+                        seatrs.getString("status"),
                         seatrs.getInt("row_number"),
-                        seatrs.getInt("column_number"),
+                        seatrs.getInt("col_number"),
                         seatrs.getInt("seat_id")
                 ));
             }
 
 
             BusScheduleDetailsDTO sd = new BusScheduleDetailsDTO(
+                    rs.getInt("route_id"),
+                    rs.getInt("bus_id"),
                     rs.getInt("schedule_id"),
                     rs.getString("bus_number"),
-                    rs.getString("departure_time").toString(),
-                    rs.getString("arrival_time").toString(),
-                    rs.getInt("available_seats"),
+                    rs.getString("departure_time"),
+                    rs.getString("arrival_time"),
                     seats,
                     rs.getString("source_city"),
                     rs.getString("destination_city"),
                     rs.getString("operator_name"),
                     rs.getString("bus_type"),
-                    rs.getDouble("price")
+                    rs.getDouble("price"),
+                    rs.getString("journey_date"),
+                    rs.getInt("total_columns")
             );
+
 
             return Response.ok(sd).build();
 

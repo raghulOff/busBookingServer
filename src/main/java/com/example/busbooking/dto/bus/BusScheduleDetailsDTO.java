@@ -5,7 +5,7 @@ import com.example.busbooking.dto.base.ScheduleDTO;
 import java.util.List;
 
 public class BusScheduleDetailsDTO extends ScheduleDTO {
-
+    private int totalColumns;
     private String operatorName;
     private String source;
     private String busType;
@@ -14,18 +14,47 @@ public class BusScheduleDetailsDTO extends ScheduleDTO {
     private List<SeatDTO> seatLayout;
 
 
-//    private int scheduleId;
-//    private double price;
-//    private String departureTime;
-//    private String arrivalTime;
-//    private int availableSeats;
+
 
     public static class SeatDTO {
+        private String seatTypeName;
+
         private String seatNumber;
-        private boolean status;
+        private String status;
         private int rowNumber;
         private int columnNumber;
         private int seatId;
+        private String pos;
+        private int seatTypeId;
+
+
+        public String getSeatTypeName() {
+            return seatTypeName;
+        }
+
+        public void setSeatTypeName( String seatTypeName ) {
+            this.seatTypeName = seatTypeName;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public int getSeatTypeId() {
+            return seatTypeId;
+        }
+
+        public void setSeatTypeId( int seatTypeId ) {
+            this.seatTypeId = seatTypeId;
+        }
+
+        public String getPos() {
+            return pos;
+        }
+
+        public void setPos( String pos ) {
+            this.pos = pos;
+        }
 
         public String getSeatNumber() {
             return seatNumber;
@@ -35,11 +64,11 @@ public class BusScheduleDetailsDTO extends ScheduleDTO {
             this.seatNumber = seatNumber;
         }
 
-        public boolean isStatus() {
+        public String  isStatus() {
             return status;
         }
 
-        public void setStatus( boolean status ) {
+        public void setStatus( String status ) {
             this.status = status;
         }
 
@@ -67,26 +96,41 @@ public class BusScheduleDetailsDTO extends ScheduleDTO {
             this.seatId = seatId;
         }
 
-        public SeatDTO( String seatNumber, boolean status, int rowNumber, int columnNumber, int seatId ) {
+        public SeatDTO( String seatTypeName, int seatTypeId, String pos, String seatNumber, String status, int rowNumber, int columnNumber, int seatId ) {
+            this.seatTypeId = seatTypeId;
             this.seatNumber = seatNumber;
             this.status = status;
             this.rowNumber = rowNumber;
             this.columnNumber = columnNumber;
             this.seatId = seatId;
+            this.pos = pos;
+            this.seatTypeName = seatTypeName;
         }
     }
 
-    public BusScheduleDetailsDTO( int scheduleId, String busNumber, String departureTime,
-                                  String arrivalTime, int availableSeats, List<SeatDTO> seatLayout,
-                                  String source, String destination, String operatorName, String busType, double price ) {
+    public BusScheduleDetailsDTO( int routeId, int busId, int scheduleId, String busNumber, String departureTime,
+                                  String arrivalTime, List<SeatDTO> seatLayout,
+                                  String source, String destination, String operatorName,
+                                  String busType, double price, String journeyDate,
+                                  int totalColumns) {
 
-        super(scheduleId, departureTime, arrivalTime, availableSeats, price);
+        super(scheduleId, routeId, busId, departureTime, arrivalTime, price, journeyDate);
         this.busNumber = busNumber;
         this.seatLayout = seatLayout;
         this.operatorName = operatorName;
         this.source = source;
         this.destination = destination;
         this.busType = busType;
+        this.totalColumns = totalColumns;
+
+    }
+
+    public int getTotalColumns() {
+        return totalColumns;
+    }
+
+    public void setTotalColumns( int totalColumns ) {
+        this.totalColumns = totalColumns;
     }
 
 

@@ -40,7 +40,11 @@ public class User {
     }
 
     public void setRole( Role role ) {
-        this.role = role;
+        try {
+            this.role = role;
+        } catch (Exception e) {
+            System.err.println(e);
+        }
     }
 
     public String getUsername() {

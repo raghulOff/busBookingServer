@@ -7,7 +7,7 @@ public class ScheduleDTO {
     protected String arrivalTime;
     protected double price;
     protected String journeyDate;
-    protected int availableSeats;
+//    protected int availableSeats;
     protected int scheduleId;
 
     public ScheduleDTO() {
@@ -21,13 +21,13 @@ public class ScheduleDTO {
         this.routeId = routeId;
     }
 
-    public int getAvailableSeats() {
-        return availableSeats;
-    }
-
-    public void setAvailableSeats( int availableSeats ) {
-        this.availableSeats = availableSeats;
-    }
+//    public int getAvailableSeats() {
+//        return availableSeats;
+//    }
+//
+//    public void setAvailableSeats( int availableSeats ) {
+//        this.availableSeats = availableSeats;
+//    }
 
     public int getBusId() {
         return busId;
@@ -77,21 +77,21 @@ public class ScheduleDTO {
         this.scheduleId = scheduleId;
     }
 
-    public ScheduleDTO( int scheduleId, String departureTime, String arrivalTime, int availableSeats, double price ) {
+    public ScheduleDTO( int scheduleId, String departureTime, String arrivalTime, double price ) {
         this.scheduleId = scheduleId;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
         this.price = price;
-        this.availableSeats = availableSeats;
+//        this.availableSeats = availableSeats;
     }
 
-    public ScheduleDTO( int scheduleId, int routeId, int busId, String departureTime, String arrivalTime, int availableSeats, double price, String journeyDate ) {
+    public ScheduleDTO( int scheduleId, int routeId, int busId, String departureTime, String arrivalTime, double price, String journeyDate ) {
         this.routeId = routeId;
         this.busId = busId;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
         this.price = price;
-        this.availableSeats = availableSeats;
+//        this.availableSeats = availableSeats;
         this.journeyDate = journeyDate;
         this.scheduleId = scheduleId;
     }

@@ -11,17 +11,22 @@ import java.sql.ResultSet;
 public class SignupService {
     public static final String check_user_exist_query = "SELECT 1 FROM users WHERE username = ?";
 
-    public static boolean signupVerification(User user) {
+    public static boolean signupVerification( User user ) {
         if (exists(user.getUsername())) {
             return false;
         }
-        UserDAO.addUser(user);
-        return true;
+        try {
+            UserDAO.addUser(user);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 
     // to check whether a user exists or not
-    public static boolean exists(String username) {
+    public static boolean exists( String username ) {
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(check_user_exist_query)) {

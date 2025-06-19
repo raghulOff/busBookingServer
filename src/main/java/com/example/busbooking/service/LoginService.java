@@ -23,7 +23,7 @@ public class LoginService {
 
         String token = JwtUtil.generateToken(user);
 
-        NewCookie tokenCookie = new NewCookie("token", token, "/", null, null, -1, false, true);
+        NewCookie tokenCookie = new NewCookie("token", token, "/", null, null, -1, true, true);
 
         UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
         return Response.ok("Login successful").entity(userdto).cookie(tokenCookie).build();

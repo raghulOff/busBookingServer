@@ -5,6 +5,8 @@ import com.example.busbooking.dao.base.UserDAO;
 import com.example.busbooking.dto.base.UserDTO;
 import com.example.busbooking.model.Role;
 import com.example.busbooking.model.User;
+import com.example.busbooking.security.JwtUtil;
+import com.example.busbooking.service.BlackListService;
 import com.example.busbooking.service.LoginService;
 import com.example.busbooking.service.SignupService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,11 +30,28 @@ public class AuthController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public Response signup(User user) {
+        user.setRole(Role.USER);
         if (SignupService.signupVerification(user)) {
             return Response.ok("Signup success").build();
         }
         return Response.status(Response.Status.CONFLICT).entity("Already exist").build();
     }
+
+
+    // this endpoint is accessible only by admin to allowed roles and can add a user with custom role.
+    @POST
+    @Path("/add-user")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    @RolesAllowedCustom({Role.ADMIN})
+    public Response addUser(User user) {
+        if (SignupService.signupVerification(user)) {
+            return Response.ok("Add user success").build();
+
+        }
+        return Response.status(Response.Status.CONFLICT).entity("Already exist").build();
+    }
+
 
 
     // after successful login, returns the user id and role id.
@@ -43,7 +62,6 @@ public class AuthController {
     public Response login(User userInput) {
         return LoginService.loginVerification(userInput);
     }
-
 
 
 
@@ -112,12 +130,17 @@ public class AuthController {
     @Path("/logout")
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowedCustom({Role.USER, Role.DEVELOPER, Role.ADMIN})
-    public Response logout() {
-        NewCookie expiredCookie = new NewCookie("token", "", "/", null, null, 0, false);
+    public Response logout(@CookieParam("token") String token) {
+
+        String jti = JwtUtil.getJtiFromToken(token);
+        BlackListService.addToBlacklist(jti);
+
+        NewCookie expiredCookie = new NewCookie("token", "", "/", null, null, 0, false, true);
         return Response.ok("Logout success").cookie(expiredCookie).build();
     }
 
 
+    // returns all the bookings done by a user
     @GET
     @Path("/bookings")
     @Produces(MediaType.APPLICATION_JSON)
@@ -130,7 +153,7 @@ public class AuthController {
         return Response.ok("Customer can see this").entity(userdto).build();
     }
 
-
+    // returns all the roles available
     @GET
     @Path("/get-roles")
     @Produces(MediaType.APPLICATION_JSON)

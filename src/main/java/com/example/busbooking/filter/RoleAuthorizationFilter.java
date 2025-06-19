@@ -3,7 +3,6 @@ package com.example.busbooking.filter;
 import com.example.busbooking.annotation.RolesAllowedCustom;
 
 import com.example.busbooking.model.Role;
-import com.example.busbooking.service.AvoidPath;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -28,7 +27,10 @@ public class RoleAuthorizationFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) {
         String path = requestContext.getUriInfo().getPath();
-        if (!AvoidPath.avoidPath(path)) {
+//        if (!AvoidPath.avoidPath(path)) {
+//            return;
+//        }
+        if (path.contains("login") || path.contains("signup")) {
             return;
         }
 
@@ -41,7 +43,6 @@ public class RoleAuthorizationFilter implements ContainerRequestFilter {
         try {
             List<Integer> allowedRoles = new ArrayList<>();
             for (Role r : roleAnnotation.value()) {
-                System.out.println(r);
                 allowedRoles.add(r.getId());
             }
 

@@ -5,6 +5,7 @@ import com.example.busbooking.db.DBConnection;
 
 import com.example.busbooking.dto.bus.BusSearchResponseDTO;
 import com.example.busbooking.dto.bus.BusVehicleDTO;
+import com.example.busbooking.service.AddBusService;
 import jakarta.ws.rs.core.Response;
 
 import java.math.BigDecimal;
@@ -20,7 +21,6 @@ public class BusVehicleDAO implements VehicleDAO {
                 b.bus_type,
                 s.departure_time,
                 s.arrival_time,
-                s.available_seats,
                 s.price,
                 b.operator_name,
                 r.distance_km,
@@ -36,10 +36,9 @@ public class BusVehicleDAO implements VehicleDAO {
                 s.journey_date = ?
         """;
 
-    public static final String get_all_buses_query = "select bus_id, bus_number, bus_type, total_seats, operator_name from buses";
+    public static final String get_all_buses_query = "select bus_id, bus_number, bus_type, total_columns, operator_name from buses";
     public static final String delete_bus_query = "delete from buses where bus_id = ?";
     public static final String update_bus_query = "update buses set bus_number = ?, bus_type = ?, total_seats = ?, operator_name = ? where bus_id = ?";
-    public static final String add_bus_query = "insert into buses (bus_number, bus_type, total_seats, operator_name) values (?, ?, ?, ?) ";
 
 
     // returns the available buses particular to source, destination and date of journey.
@@ -61,13 +60,13 @@ public class BusVehicleDAO implements VehicleDAO {
                     String busType = rs.getString("bus_type");
                     String departureTime = rs.getString("departure_time");
                     String arrivalTime = rs.getString("arrival_time");
-                    int available_seats = rs.getInt("available_seats");
                     BigDecimal price = rs.getBigDecimal("price");
                     String operatorName = rs.getString("operator_name");
                     int distanceKm = rs.getInt("distance_km");
                     String estimatedTime = rs.getString("estimated_time");
 
-                    searchResponseList.add(new BusSearchResponseDTO(scheduleId, busNumber, busType, departureTime, arrivalTime, available_seats, price, operatorName, distanceKm));
+                    searchResponseList.add(new BusSearchResponseDTO(scheduleId, busNumber, busType, departureTime,
+                            arrivalTime, price, operatorName, distanceKm, estimatedTime));
 
                 }
             }
@@ -89,9 +88,9 @@ public class BusVehicleDAO implements VehicleDAO {
                 int busId = rs.getInt("bus_id");
                 String busNumber = rs.getString("bus_number");
                 String busType = rs.getString("bus_type");
-                int total_seats = rs.getInt("total_seats");
+                int totalColumns = rs.getInt("total_columns");
                 String op_name = rs.getString("operator_name");
-                allBuses.add(new BusVehicleDTO(busNumber, total_seats, op_name, busId, busType));
+                allBuses.add(new BusVehicleDTO(busNumber, totalColumns, op_name, busId, busType));
             }
         } catch (Exception e) {
             throw e;
@@ -131,20 +130,41 @@ public class BusVehicleDAO implements VehicleDAO {
     }
 
 
-    // Adds a new bus
-    public Response addNew( BusVehicleDTO busVehicleDTO ) throws Exception {
-        try (Connection conn = DBConnection.getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(add_bus_query);
-            statement.setString(1, busVehicleDTO.getVehicleNumber());
-            statement.setString(2, busVehicleDTO.getBusType());
-            statement.setInt(3, busVehicleDTO.getTotalSeats());
-            statement.setString(4, busVehicleDTO.getOperatorName());
 
-            statement.executeUpdate();
+
+    // adding a new bus
+    public Response addNew( BusVehicleDTO busVehicleDTO ) throws Exception {
+        Connection conn = null;
+
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // add a new bus in the buses table and returns the generated bus id;
+            int busId = AddBusService.addNewBus(conn, busVehicleDTO);
+
+            // this stores the details of no of rows for each column in the bus;
+            AddBusService.addSeatGridColumns(conn, busVehicleDTO, busId);
+
+            // adds all the seats for the bus with bus type received from the user.
+            AddBusService.addSeats(conn, busVehicleDTO, busId);
+
+            conn.commit();
+
         } catch (Exception e) {
-            return Response.status(Response.Status.CONFLICT).entity("bus already exist").build();
+            if (conn != null) {
+                try {
+                    conn.rollback(); // Roll back if error occurs
+                } catch (Exception rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+
+            if (conn != null) conn.close();
         }
-        return Response.ok("new bus added").build();
+        return Response.ok().build();
     }
 
 }

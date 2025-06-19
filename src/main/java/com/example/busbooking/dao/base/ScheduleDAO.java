@@ -11,3 +11,4 @@ public interface ScheduleDAO {
     Response getScheduleDetails(int scheduleId);
 
 }
+

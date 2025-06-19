@@ -5,11 +5,15 @@ public class VehicleDTO {
     protected int totalSeats;
     protected String operatorName;
 
+
+
+
+
+
     public VehicleDTO() {}
 
-    public VehicleDTO( String vehicleNumber, int totalSeats, String operatorName ) {
+    public VehicleDTO( String vehicleNumber, String operatorName ) {
         this.vehicleNumber = vehicleNumber;
-        this.totalSeats = totalSeats;
         this.operatorName = operatorName;
     }
 

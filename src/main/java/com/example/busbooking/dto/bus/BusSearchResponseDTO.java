@@ -8,26 +8,35 @@ public class BusSearchResponseDTO {
     private String busType;
     private String departureTime;
     private String arrivalTime;
-    private int availableSeats;
     private BigDecimal price;
     private String operatorName;
     private int distanceKm;
+    private String estimateTime;
 
 
-    public BusSearchResponseDTO( int scheduleId, String busNumber, String busType, String departureTime, String arrivalTime, int availableSeats, BigDecimal price, String operatorName, int distanceKm ) {
+    public BusSearchResponseDTO( int scheduleId, String busNumber, String busType, String departureTime, String arrivalTime, BigDecimal price, String operatorName, int distanceKm, String estimatedTime ) {
         this.scheduleId = scheduleId;
         this.busNumber = busNumber;
         this.busType = busType;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
-        this.availableSeats = availableSeats;
         this.price = price;
         this.operatorName = operatorName;
         this.distanceKm = distanceKm;
+        this.estimateTime = estimatedTime;
     }
 
     public int getDistanceKm() {
         return distanceKm;
+    }
+
+
+    public String getEstimateTime() {
+        return estimateTime;
+    }
+
+    public void setEstimateTime( String estimateTime ) {
+        this.estimateTime = estimateTime;
     }
 
     public void setDistanceKm( int distanceKm ) {
@@ -80,14 +89,6 @@ public class BusSearchResponseDTO {
 
     public String getOperatorName() {
         return operatorName;
-    }
-
-    public int getAvailableSeats() {
-        return availableSeats;
-    }
-
-    public void setAvailableSeats( int availableSeats ) {
-        this.availableSeats = availableSeats;
     }
 
     public BigDecimal getPrice() {
