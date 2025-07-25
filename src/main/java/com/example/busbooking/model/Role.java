@@ -1,9 +1,11 @@
+
 package com.example.busbooking.model;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 
+// Enum to denote Roles of all users.
 public enum Role {
     ADMIN(1),
     DEVELOPER(2),

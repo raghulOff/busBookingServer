@@ -1,10 +1,11 @@
 package com.example.busbooking.dto.bus;
 
-import com.example.busbooking.dto.base.ScheduleDTO;
+import com.example.busbooking.dto.base.SchedulesDTO;
+
 
 import java.util.List;
 
-public class BusScheduleDetailsDTO extends ScheduleDTO {
+public class BusSchedulesDetailsDTO extends SchedulesDTO {
     private int totalColumns;
     private String operatorName;
     private String source;
@@ -15,7 +16,6 @@ public class BusScheduleDetailsDTO extends ScheduleDTO {
 
 
 
-
     public static class SeatDTO {
         private String seatTypeName;
 
@@ -23,7 +23,7 @@ public class BusScheduleDetailsDTO extends ScheduleDTO {
         private String status;
         private int rowNumber;
         private int columnNumber;
-        private int seatId;
+        private int scheduledSeatId;
         private String pos;
         private int seatTypeId;
 
@@ -88,31 +88,31 @@ public class BusScheduleDetailsDTO extends ScheduleDTO {
             this.columnNumber = columnNumber;
         }
 
-        public int getSeatId() {
-            return seatId;
+        public int getScheduledSeatId() {
+            return scheduledSeatId;
         }
 
-        public void setSeatId( int seatId ) {
-            this.seatId = seatId;
+        public void setScheduledSeatId( int scheduledSeatId ) {
+            this.scheduledSeatId = scheduledSeatId;
         }
 
-        public SeatDTO( String seatTypeName, int seatTypeId, String pos, String seatNumber, String status, int rowNumber, int columnNumber, int seatId ) {
+        public SeatDTO( String seatTypeName, int seatTypeId, String pos, String seatNumber, String status, int rowNumber, int columnNumber, int scheduledSeatId ) {
             this.seatTypeId = seatTypeId;
             this.seatNumber = seatNumber;
             this.status = status;
             this.rowNumber = rowNumber;
             this.columnNumber = columnNumber;
-            this.seatId = seatId;
+            this.scheduledSeatId = scheduledSeatId;
             this.pos = pos;
             this.seatTypeName = seatTypeName;
         }
     }
 
-    public BusScheduleDetailsDTO( int routeId, int busId, int scheduleId, String busNumber, String departureTime,
-                                  String arrivalTime, List<SeatDTO> seatLayout,
-                                  String source, String destination, String operatorName,
-                                  String busType, double price, String journeyDate,
-                                  int totalColumns) {
+    public BusSchedulesDetailsDTO( int routeId, int busId, int scheduleId, String busNumber, String departureTime,
+                                   String arrivalTime, List<SeatDTO> seatLayout,
+                                   String source, String destination, String operatorName,
+                                   String busType, double price, String journeyDate,
+                                   int totalColumns) {
 
         super(scheduleId, routeId, busId, departureTime, arrivalTime, price, journeyDate);
         this.busNumber = busNumber;

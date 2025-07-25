@@ -1,18 +1,14 @@
 package com.example.busbooking.dto.base;
 
-public class VehicleDTO {
+
+public class VehiclesDTO {
     protected String vehicleNumber;
     protected int totalSeats;
     protected String operatorName;
 
+    public VehiclesDTO() {}
 
-
-
-
-
-    public VehicleDTO() {}
-
-    public VehicleDTO( String vehicleNumber, String operatorName ) {
+    public VehiclesDTO( String vehicleNumber, String operatorName ) {
         this.vehicleNumber = vehicleNumber;
         this.operatorName = operatorName;
     }

@@ -1,5 +1,6 @@
 package com.example.busbooking.dto.bus;
 
+
 public class BusSearchRequestDTO {
     private String from;
     private String to;

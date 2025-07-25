@@ -1,18 +1,37 @@
 package com.example.busbooking.dto.base;
 
-public class RouteDTO {
+
+public class RoutesDTO {
     private String source;
     private String destination;
-    private int distanceKm;
+    private Integer distanceKm;
     private String estimatedTime;
     private int routeId;
+    private int sourceCityId;
+    private int destinationCityId;
 
-    public RouteDTO() {
+    public RoutesDTO() {
     }
 
+    public int getSourceCityId() {
+        return sourceCityId;
+    }
+
+    public void setSourceCityId( int sourceCityId ) {
+        this.sourceCityId = sourceCityId;
+    }
+
+    public int getDestinationCityId() {
+        return destinationCityId;
+    }
+
+    public void setDestinationCityId( int destinationCityId ) {
+        this.destinationCityId = destinationCityId;
+    }
     public String getSource() {
         return source;
     }
+
 
     public void setSource( String source ) {
         this.source = source;
@@ -26,11 +45,11 @@ public class RouteDTO {
         this.destination = destination;
     }
 
-    public int getDistanceKm() {
+    public Integer getDistanceKm() {
         return distanceKm;
     }
 
-    public void setDistanceKm( int distanceKm ) {
+    public void setDistanceKm( Integer distanceKm ) {
         this.distanceKm = distanceKm;
     }
 
@@ -50,18 +69,21 @@ public class RouteDTO {
         this.routeId = routeId;
     }
 
-    public RouteDTO( String source, String destination, int distanceKm, String estimatedTime ) {
+    public RoutesDTO( String source, String destination, int distanceKm, String estimatedTime ) {
         this.source = source;
         this.destination = destination;
         this.distanceKm = distanceKm;
         this.estimatedTime = estimatedTime;
     }
 
-    public RouteDTO( int routeId, String source, String destination, int distanceKm, String estimatedTime ) {
+    public RoutesDTO( int routeId, String source, String destination, int distanceKm, String estimatedTime, int sourceCityId, int destinationCityId ) {
         this.source = source;
         this.destination = destination;
         this.distanceKm = distanceKm;
         this.estimatedTime = estimatedTime;
         this.routeId = routeId;
+        this.sourceCityId = sourceCityId;
+        this.destinationCityId = destinationCityId;
+
     }
 }

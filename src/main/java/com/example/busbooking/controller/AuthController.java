@@ -1,21 +1,23 @@
 package com.example.busbooking.controller;
 
 import com.example.busbooking.annotation.RolesAllowedCustom;
-import com.example.busbooking.dao.base.UserDAO;
-import com.example.busbooking.dto.base.UserDTO;
+import com.example.busbooking.dao.user.UserDAO;
 import com.example.busbooking.model.Role;
 import com.example.busbooking.model.User;
-import com.example.busbooking.security.JwtUtil;
-import com.example.busbooking.service.BlackListService;
-import com.example.busbooking.service.LoginService;
-import com.example.busbooking.service.SignupService;
+import com.example.busbooking.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 
+
+/**
+ * REST controller responsible for authentication, role-based authorization,
+
+ * Endpoints are protected using the {@link RolesAllowedCustom} annotation to
+ * ensure only users with specific roles can access them.
+ */
 
 @Path("/user")
 
@@ -24,136 +26,155 @@ public class AuthController {
     @Context
     HttpServletRequest request;
 
-    // adds new user with role.
+    /**
+     * Registers a new user with the default role of USER.
+     *
+     * @param user the user details submitted via request body (e.g., username, password)
+     * @return HTTP 200 on success, or error response on failure
+     */
     @POST
     @Path("/signup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response signup(User user) {
+    public Response signup( User user ) {
+        // assigning role as USER
         user.setRole(Role.USER);
-        if (SignupService.signupVerification(user)) {
-            return Response.ok("Signup success").build();
-        }
-        return Response.status(Response.Status.CONFLICT).entity("Already exist").build();
+        return AuthService.validateAndRegisterUser(user);
     }
 
 
-    // this endpoint is accessible only by admin to allowed roles and can add a user with custom role.
+    /**
+     * Allows an ADMIN to register a new user with a custom role (e.g., DEVELOPER, ADMIN).
+     *
+     * @param user the user object with assigned role
+     * @return HTTP 200 on success, or error response on failure
+     */
     @POST
     @Path("/add-user")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowedCustom({Role.ADMIN})
-    public Response addUser(User user) {
-        if (SignupService.signupVerification(user)) {
-            return Response.ok("Add user success").build();
-
-        }
-        return Response.status(Response.Status.CONFLICT).entity("Already exist").build();
+    public Response addUser( User user ) {
+        return AuthService.validateAndRegisterUser(user);
     }
 
 
-
-    // after successful login, returns the user id and role id.
+    /**
+     * Authenticates a user using credentials and returns username, user ID and role ID on success.
+     *
+     * @param userInput the login credentials (username and password)
+     * @return HTTP 200 with user data on success, error otherwise
+     */
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(User userInput) {
-        return LoginService.loginVerification(userInput);
+    public Response login( User userInput ) throws Exception {
+        return AuthService.loginVerification(userInput);
     }
 
 
-
-    // visiting home page triggers this endpoint to check if the user has access to this page. Returns the user data
+    /**
+     * Endpoint accessible by users with USER role to validate access to home page.
+     *
+     * @return user details if authorized
+     */
     @GET
     @Path("/home")
     @RolesAllowedCustom({Role.USER})
+    @Produces(MediaType.APPLICATION_JSON)
     public Response homeCheck() {
         String username = (String) request.getAttribute("username");
-        UserDTO userdto = null;
-        try {
-            User user = UserDAO.getUser(username);
-            userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
-        } catch (Exception e) {
-            System.err.println(e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        return Response.ok("only user can see this").entity(userdto).build();
+        return AuthService.extractUserDetails(username, "Only user can see this.");
     }
 
 
-    // visiting this page triggers this endpoint to check if the user has access to this page. Returns the user data
-
+    /**
+     * Endpoint accessible for the bus booking page. Only USER role is allowed.
+     *
+     * @return user details if authorized
+     */
     @GET
     @Path("/book-bus")
     @RolesAllowedCustom({Role.USER})
+    @Produces(MediaType.APPLICATION_JSON)
     public Response bookPageCheck() {
         String username = (String) request.getAttribute("username");
-        User user = UserDAO.getUser(username);
-        UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
+        return AuthService.extractUserDetails(username, "Only customer can see this.");
 
-        return Response.ok("Customer can see this").entity(userdto).build();
     }
 
 
-    // visiting this page triggers this endpoint to check if the user has access to this page. Returns the admin data
-
+    /**
+     * Endpoint to check access to the admin homepage.
+     * Only accessible to ADMIN users.
+     *
+     * @return admin details if authorized
+     */
     @GET
     @Path("/admin-home")
     @RolesAllowedCustom({Role.ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
     public Response adminCheck() {
-        String username = (String) request.getAttribute("username");
-        User user = UserDAO.getUser(username);
-        UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
 
-        return Response.ok("admin can see this").entity(userdto).build();
+        String username = (String) request.getAttribute("username");
+        return AuthService.extractUserDetails(username, "Only admin can see this.");
+
     }
 
 
-    // visiting this page triggers this endpoint to check if the user has access to this page. Returns the developer data
-
+    /**
+     * Endpoint for developers to access their dev homepage.
+     *
+     * @return developer details if authorized
+     */
     @GET
     @Path("/dev-home")
     @RolesAllowedCustom({Role.DEVELOPER})
+    @Produces(MediaType.APPLICATION_JSON)
     public Response devCheck() {
         String username = (String) request.getAttribute("username");
-        User user = UserDAO.getUser(username);
-        UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
-        return Response.ok("developer can see this").entity(userdto).build();
+        return AuthService.extractUserDetails(username, "Only developer can see this.");
+
     }
 
 
-    // expires the cookie which ends the user session.
+    /**
+     * Logs out the user by expiring the JWT cookie and adds the token to blacklist.
+     *
+     * @param token the session token from the cookie
+     * @return plain text response
+     */
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowedCustom({Role.USER, Role.DEVELOPER, Role.ADMIN})
-    public Response logout(@CookieParam("token") String token) {
-
-        String jti = JwtUtil.getJtiFromToken(token);
-        BlackListService.addToBlacklist(jti);
-
-        NewCookie expiredCookie = new NewCookie("token", "", "/", null, null, 0, false, true);
-        return Response.ok("Logout success").cookie(expiredCookie).build();
+    public Response logout( @CookieParam("token") String token ) {
+        return AuthService.logoutUser(token);
     }
 
 
-    // returns all the bookings done by a user
+    /**
+     * Fetches all bookings of currently authenticated user.
+     *
+     * @return list of booking details if authorized
+     */
     @GET
     @Path("/bookings")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({Role.USER})
     public Response bookingHistoryCheck() {
         String username = (String) request.getAttribute("username");
-        User user = UserDAO.getUser(username);
-        UserDTO userdto = new UserDTO(user.getUsername(), user.getUserId(), user.getRoleId());
+        return AuthService.extractUserDetails(username, "Customer can see this.");
 
-        return Response.ok("Customer can see this").entity(userdto).build();
     }
 
-    // returns all the roles available
+    /**
+     * Returns a list of all available roles.
+     * Only accessible by ADMIN users.
+     *
+     * @return list of roles in JSON format
+     */
     @GET
     @Path("/get-roles")
     @Produces(MediaType.APPLICATION_JSON)

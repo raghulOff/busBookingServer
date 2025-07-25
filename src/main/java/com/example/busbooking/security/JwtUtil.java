@@ -6,8 +6,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.example.busbooking.model.User;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+
 
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -25,7 +24,7 @@ public class JwtUtil {
                 .withClaim("roleId", user.getRoleId())
                 .withClaim("jti", generateJti())         // Custom claim for JWT ID (jti)
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .withExpiresAt(new Date(System.currentTimeMillis() + (EXPIRATION_TIME*100)))
                 .sign(Algorithm.HMAC256(SECRET));
     }
 
@@ -51,6 +50,5 @@ public class JwtUtil {
             throw new RuntimeException("Invalid token signature", e);
         }
     }
-
 
 }

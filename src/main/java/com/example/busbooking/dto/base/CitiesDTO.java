@@ -1,16 +1,17 @@
 package com.example.busbooking.dto.base;
 
-public class CityDTO {
+
+public class CitiesDTO {
     private String cityName;
     private int cityId;
 
-    public CityDTO() {
+    public CitiesDTO() {
     }
 
-    public CityDTO( String cityName ) {
+    public CitiesDTO( String cityName ) {
         this.cityName = cityName;
     }
-    public CityDTO( int cityId, String cityName ) {
+    public CitiesDTO( int cityId, String cityName ) {
         this.cityName = cityName;
         this.cityId = cityId;
     }

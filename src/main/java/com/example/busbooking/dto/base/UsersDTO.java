@@ -1,11 +1,12 @@
 package com.example.busbooking.dto.base;
 
-public class UserDTO {
+
+public class UsersDTO {
     private String username;
     private int userId;
     private int roleId;
 
-    public UserDTO(String username, int userId, int roleId) {
+    public UsersDTO( String username, int userId, int roleId) {
         this.userId = userId;
         this.username = username;
         this.roleId = roleId;

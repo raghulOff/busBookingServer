@@ -2,7 +2,7 @@ package com.example.busbooking.dto.base;
 
 import java.util.List;
 
-public class BookSeatDTO {
+public class BookingSeatsDTO {
     private int userId;
     private int scheduleId;
     private int payableAmount;
@@ -10,26 +10,27 @@ public class BookSeatDTO {
     private int droppingPointId;
     private List<PassengerDetailsDTO> passengerDetails;
 
-    public BookSeatDTO() {}
+    public BookingSeatsDTO() {}
 
 
     public static class PassengerDetailsDTO {
-        private int seatId;
+        private int scheduledSeatId;
         private String passengerName;
-        private int passengerAge;
-        public PassengerDetailsDTO (String passengerName, int passengerAge, int seatId) {
+        private Integer passengerAge;
+
+        public PassengerDetailsDTO (String passengerName, Integer passengerAge, int scheduledSeatId) {
             this.passengerAge = passengerAge;
             this.passengerName = passengerName;
-            this.seatId = seatId;
+            this.scheduledSeatId = scheduledSeatId;
         }
 
         public PassengerDetailsDTO () {}
-        public int getSeatId() {
-            return seatId;
+        public int getScheduledSeatId() {
+            return scheduledSeatId;
         }
 
-        public void setSeatId( int seatId ) {
-            this.seatId = seatId;
+        public void setScheduledSeatId( int scheduledSeatId ) {
+            this.scheduledSeatId = scheduledSeatId;
         }
 
         public String getPassengerName() {
@@ -40,16 +41,16 @@ public class BookSeatDTO {
             this.passengerName = passengerName;
         }
 
-        public int getPassengerAge() {
+        public Integer getPassengerAge() {
             return passengerAge;
         }
 
-        public void setPassengerAge( int passengerAge ) {
+        public void setPassengerAge( Integer passengerAge ) {
             this.passengerAge = passengerAge;
         }
 
     }
-    public BookSeatDTO( int userId, int scheduleId, int payableAmount, int boardingPointId, int droppingPointId, List<PassengerDetailsDTO> passengerDetails ) {
+    public BookingSeatsDTO( int userId, int scheduleId, int payableAmount, int boardingPointId, int droppingPointId, List<PassengerDetailsDTO> passengerDetails ) {
         this.userId = userId;
         this.scheduleId = scheduleId;
         this.payableAmount = payableAmount;

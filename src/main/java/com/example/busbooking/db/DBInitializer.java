@@ -1,8 +1,11 @@
 package com.example.busbooking.db;
 
+import com.example.busbooking.dao.base.ScheduleDAO;
 import com.example.busbooking.dao.base.VehicleDAO;
-import com.example.busbooking.dao.bus.BusVehicleDAO;
-import com.example.busbooking.dto.bus.BusVehicleDTO;
+import com.example.busbooking.dao.bus.BusSchedulesDAO;
+import com.example.busbooking.dao.bus.BusVehiclesDAO;
+import com.example.busbooking.dto.base.SchedulesDTO;
+import com.example.busbooking.dto.bus.BusVehiclesDTO;
 import com.example.busbooking.security.PasswordUtil;
 
 import java.sql.Connection;
@@ -10,61 +13,61 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
 
 
 // NOTE: For demo/testing only. Do NOT use hardcoded admin credentials in production!
 
 public class DBInitializer {
 
-    public static BusVehicleDTO createSampleBusVehicleDTO() {
-        List<BusVehicleDTO.SeatGridCount> seatGridCounts = new ArrayList<>();
+    public static BusVehiclesDTO createSampleBusVehicleDTO() {
+        List<BusVehiclesDTO.SeatGridCount> seatGridCounts = new ArrayList<>();
 
         // UPPER seat grid counts
-        seatGridCounts.add(new BusVehicleDTO.SeatGridCount(1, 5, "UPPER")); // Sleeper
-        seatGridCounts.add(new BusVehicleDTO.SeatGridCount(2, 5, "UPPER")); // Sleeper
-        seatGridCounts.add(new BusVehicleDTO.SeatGridCount(3, 5, "UPPER")); // Sleeper
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(1, 5, "UPPER")); // Sleeper
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(2, 5, "UPPER")); // Sleeper
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(3, 5, "UPPER")); // Sleeper
 
         // LOWER seat grid counts
-        seatGridCounts.add(new BusVehicleDTO.SeatGridCount(1, 5, "LOWER")); // Sleeper
-        seatGridCounts.add(new BusVehicleDTO.SeatGridCount(2, 10, "LOWER")); // Seater
-        seatGridCounts.add(new BusVehicleDTO.SeatGridCount(3, 10, "LOWER")); // Seater
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(1, 5, "LOWER")); // Sleeper
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(2, 10, "LOWER")); // Seater
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(3, 10, "LOWER")); // Seater
 
-        List<BusVehicleDTO.SeatDetails> seatDetails = new ArrayList<>();
+        List<BusVehiclesDTO.SeatDetails> seatDetails = new ArrayList<>();
 
         // Column 1: UPPER - 5 Sleeper seats
         for (int row = 1; row <= 5; row++) {
-            seatDetails.add(new BusVehicleDTO.SeatDetails(row, 3, 1, "UPPER")); // Sleeper
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 3, 1, "UPPER")); // Sleeper
         }
 
         // Column 1: LOWER - 5 Sleeper seats
         for (int row = 1; row <= 5; row++) {
-            seatDetails.add(new BusVehicleDTO.SeatDetails(row, 3, 1, "LOWER")); // Sleeper
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 3, 1, "LOWER")); // Sleeper
         }
 
         // Column 2: UPPER - 5 Sleeper seats
         for (int row = 1; row <= 5; row++) {
-            seatDetails.add(new BusVehicleDTO.SeatDetails(row, 3, 2, "UPPER")); // Sleeper
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 3, 2, "UPPER")); // Sleeper
         }
 
         // Column 2: LOWER - 10 Seater seats
         for (int row = 1; row <= 10; row++) {
-            seatDetails.add(new BusVehicleDTO.SeatDetails(row, 1, 2, "LOWER")); // Seater
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 1, 2, "LOWER")); // Seater
         }
 
         // Column 3: UPPER - 5 Sleeper seats
         for (int row = 1; row <= 5; row++) {
-            seatDetails.add(new BusVehicleDTO.SeatDetails(row, 3, 3, "UPPER")); // Sleeper
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 3, 3, "UPPER")); // Sleeper
         }
 
         // Column 3: LOWER - 10 Seater seats
         for (int row = 1; row <= 10; row++) {
-            seatDetails.add(new BusVehicleDTO.SeatDetails(row, 1, 3, "LOWER")); // Seater
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 1, 3, "LOWER")); // Seater
         }
 
         // Create the DTO
-        BusVehicleDTO busVehicleDTO = new BusVehicleDTO();
+        BusVehiclesDTO busVehicleDTO = new BusVehiclesDTO();
         busVehicleDTO.setVehicleNumber("TN01AB1234");
         busVehicleDTO.setOperatorName("KPN Travels");
         busVehicleDTO.setBusType("Mixed Sleeper-Seater");
@@ -75,6 +78,49 @@ public class DBInitializer {
         return busVehicleDTO;
     }
 
+    public static BusVehiclesDTO createSampleBusVehicleDTO2() {
+        List<BusVehiclesDTO.SeatGridCount> seatGridCounts = new ArrayList<>();
+        // LOWER seat grid counts
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(1, 10, "LOWER")); // Sleeper
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(2, 10, "LOWER")); // Sleeper
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(3, 10, "LOWER")); // Seater
+        seatGridCounts.add(new BusVehiclesDTO.SeatGridCount(4, 10, "LOWER")); // Seater
+
+        List<BusVehiclesDTO.SeatDetails> seatDetails = new ArrayList<>();
+
+
+        // Column 1: LOWER - 5 Sleeper seats
+        for (int row = 1; row <= 10; row++) {
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 1, 1, "LOWER")); // Sleeper
+        }
+
+
+        // Column 2: LOWER - 10 Seater seats
+        for (int row = 1; row <= 10; row++) {
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 1, 2, "LOWER")); // Seater
+        }
+
+        // Column 3: LOWER - 10 Seater seats
+        for (int row = 1; row <= 10; row++) {
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 1, 3, "LOWER")); // Seater
+        }
+        // Column 3: LOWER - 10 Seater seats
+        for (int row = 1; row <= 10; row++) {
+            seatDetails.add(new BusVehiclesDTO.SeatDetails(row, 1, 4, "LOWER")); // Seater
+        }
+
+
+        // Create the DTO
+        BusVehiclesDTO busVehicleDTO = new BusVehiclesDTO();
+        busVehicleDTO.setVehicleNumber("TN10BA4321");
+        busVehicleDTO.setOperatorName("SRS Travels");
+        busVehicleDTO.setBusType("AC Seater");
+        busVehicleDTO.setTotalColumns(4);
+        busVehicleDTO.setSeatGridCount(seatGridCounts);
+        busVehicleDTO.setSeatDetails(seatDetails);
+
+        return busVehicleDTO;
+    }
 
 
     public static void initialize() throws SQLException {
@@ -83,222 +129,285 @@ public class DBInitializer {
             conn = DBConnection.getConnection();
             Statement stmt = conn.createStatement();
 
-
-            stmt.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS users (
+            stmt.executeUpdate(String.format("""
+                        CREATE TABLE IF NOT EXISTS %s (
                             user_id SERIAL PRIMARY KEY, 
                             username VARCHAR(100) UNIQUE NOT NULL,
                             password TEXT NOT NULL
                         );
-                    """);
+                    """, DBConstants.USERS));
 
-            stmt.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS roles (
+            stmt.executeUpdate(String.format("""
+                        CREATE TABLE IF NOT EXISTS %s (
                             role_id SERIAL PRIMARY KEY,
                             role_name VARCHAR(50) UNIQUE NOT NULL
                         );
-                    """);
+                    """, DBConstants.ROLES));
 
-            stmt.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS user_roles (
-                            user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-                            role_id INTEGER NOT NULL REFERENCES roles(role_id) ON DELETE CASCADE,
+            stmt.executeUpdate(String.format("""
+                        CREATE TABLE IF NOT EXISTS %s (
+                            user_id INTEGER NOT NULL REFERENCES %s(user_id) ON DELETE CASCADE,
+                            role_id INTEGER NOT NULL REFERENCES %s(role_id) ON DELETE CASCADE,
                             PRIMARY KEY(user_id, role_id)
                         );
-                    """);
+                    """, DBConstants.USER_ROLES, DBConstants.USERS, DBConstants.ROLES));
 
-            stmt.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS cities (
+            stmt.executeUpdate(String.format("""
+                        CREATE TABLE IF NOT EXISTS %s (
                             city_id SERIAL PRIMARY KEY,
                             city_name VARCHAR(100) UNIQUE NOT NULL
                         );
-                    """);
+                    """, DBConstants.CITIES));
 
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS buses (
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         bus_id SERIAL PRIMARY KEY,
                         bus_number VARCHAR(20) NOT NULL UNIQUE,
                         operator_name VARCHAR(100) NOT NULL,
                         bus_type VARCHAR(50) NOT NULL,
                         total_columns INTEGER NOT NULL CHECK (total_columns > 0)
                     );
-                    """);
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS seat_type (
+                    """, DBConstants.BUSES));
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         seat_type_id SERIAL PRIMARY KEY,
                         seat_type_name VARCHAR(50) NOT NULL UNIQUE
                     );
-                    """);
+                    """, DBConstants.SEAT_TYPE));
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS seat_grid_columns (
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         column_id SERIAL PRIMARY KEY,
-                        bus_id INTEGER NOT NULL REFERENCES buses(bus_id) ON DELETE CASCADE,
+                        bus_id INTEGER NOT NULL REFERENCES %s(bus_id) ON DELETE CASCADE,
                         col_number INTEGER NOT NULL CHECK (col_number > 0),
                         total_rows INTEGER NOT NULL CHECK (total_rows > 0),
                         pos VARCHAR(10) NOT NULL CHECK (pos IN ('UPPER', 'LOWER')),
                     
                         UNIQUE (bus_id, col_number, pos)
                     );
-                    """);
+                    """, DBConstants.SEAT_GRID_COLUMNS, DBConstants.BUSES));
 
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS seats (
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         seat_id SERIAL PRIMARY KEY,
-                        column_id INTEGER NOT NULL REFERENCES seat_grid_columns(column_id) ON DELETE CASCADE,
+                        column_id INTEGER NOT NULL REFERENCES %s(column_id) ON DELETE CASCADE,
                         row_number INTEGER NOT NULL CHECK (row_number > 0),
-                        seat_type_id INTEGER NOT NULL REFERENCES seat_type(seat_type_id),
+                        seat_type_id INTEGER NOT NULL REFERENCES %s(seat_type_id),
                         seat_number VARCHAR(10),
-                        status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
                     
                         UNIQUE (column_id, row_number)
                     );
-                    """);
+                    """, DBConstants.SEATS, DBConstants.SEAT_GRID_COLUMNS, DBConstants.SEAT_TYPE));
 
-            stmt.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS routes (
+            stmt.executeUpdate(String.format("""
+                        CREATE TABLE IF NOT EXISTS %s (
                             route_id SERIAL PRIMARY KEY,
-                            source_city_id INT REFERENCES cities(city_id),
-                            destination_city_id INT REFERENCES cities(city_id),
+                            source_city_id INT REFERENCES %s(city_id),
+                            destination_city_id INT REFERENCES %s(city_id),
                             distance_km INT,
                             estimated_time INTERVAL,
-                            UNIQUE (source_city_id, destination_city_id)
+                            UNIQUE (source_city_id, destination_city_id, distance_km, estimated_time)
                         );
-                    """);
+                    """, DBConstants.ROUTES, DBConstants.CITIES, DBConstants.CITIES));
 
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        status_id SERIAL PRIMARY KEY,
+                        status_code VARCHAR(20) UNIQUE NOT NULL,
+                        description TEXT
+                    );
+                    """, DBConstants.SCHEDULE_STATUSES));
 
             stmt.executeUpdate("""
-                        CREATE TABLE IF NOT EXISTS schedules (
+                    INSERT INTO schedule_statuses (status_code) VALUES
+                    ('ACTIVE'),
+                    ('CANCELLED'),
+                    ('DELAYED') ON CONFLICT DO NOTHING;
+                    """);
+
+            stmt.executeUpdate(String.format("""
+                        CREATE TABLE IF NOT EXISTS %s (
                             schedule_id SERIAL PRIMARY KEY,
-                            route_id INT REFERENCES routes(route_id),
-                            bus_id INT REFERENCES buses(bus_id),
+                            route_id INT REFERENCES %s(route_id),
+                            bus_id INT REFERENCES %s(bus_id),
                             departure_time TIMESTAMP NOT NULL,
                             arrival_time TIMESTAMP NOT NULL,
                             price NUMERIC(10, 2),
                             journey_date DATE,
-                            UNIQUE (route_id, bus_id, journey_date)
+                            status_id INT REFERENCES schedule_statuses(status_id) DEFAULT 1
                         );
-                    """);
+                    """, DBConstants.SCHEDULES, DBConstants.ROUTES, DBConstants.BUSES));
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS passenger_details (
+            stmt.executeUpdate(String.format("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS unique_active_schedule
+                    ON %s (route_id, bus_id, journey_date)
+                    WHERE status_id = 1;
+                    """, DBConstants.SCHEDULES));
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         passenger_id SERIAL PRIMARY KEY,
                         passenger_name VARCHAR(100) NOT NULL,
                         passenger_age INT CHECK (passenger_age > 0)
                     );
-                    """);
+                    """, DBConstants.PASSENGER_DETAILS));
 
 
-            stmt.executeUpdate("""
+            stmt.executeUpdate(String.format("""
                     CREATE TABLE IF
-                     NOT EXISTS locations (
+                     NOT EXISTS %s (
                         location_id SERIAL PRIMARY KEY,
                         location_name VARCHAR(100) NOT NULL,
                         UNIQUE (location_name)
                     );
-                    """);
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS bookings (
+                    """, DBConstants.LOCATIONS));
+
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         booking_id SERIAL PRIMARY KEY,
-                        user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                        schedule_id INT REFERENCES schedules(schedule_id) ON DELETE CASCADE,
+                        user_id INT REFERENCES %s(user_id) ON DELETE CASCADE,
+                        schedule_id INT REFERENCES %s(schedule_id) ON DELETE CASCADE,
                         booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         total_amount NUMERIC(10, 2),
-                        boarding_point_id INT REFERENCES locations(location_id) ON DELETE CASCADE,
-                        dropping_point_id INT REFERENCES locations(location_id) ON DELETE CASCADE,
-                        trip_status VARCHAR(20) DEFAULT 'UPCOMING'
+                        boarding_point_id INT REFERENCES %s(location_id) ON DELETE CASCADE,
+                        dropping_point_id INT REFERENCES %s(location_id) ON DELETE CASCADE
                     );
-                    """);
+                    """, DBConstants.BOOKINGS, DBConstants.USERS, DBConstants.SCHEDULES, DBConstants.LOCATIONS, DBConstants.LOCATIONS));
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS booking_seats (
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        scheduled_seat_id SERIAL PRIMARY KEY,
+                        seat_id INT REFERENCES %s(seat_id) ON DELETE CASCADE,
+                        schedule_id INT REFERENCES %s(schedule_id) ON DELETE CASCADE,
+                        status BOOLEAN DEFAULT false
+                    )
+                    """, DBConstants.SCHEDULED_SEATS, DBConstants.SEATS, DBConstants.SCHEDULES));
+
+
+            stmt.executeUpdate(String.format(
+                    """
+                            CREATE TABLE IF NOT EXISTS %s (
+                                status_id SERIAL PRIMARY KEY,
+                                status_code VARCHAR(30) UNIQUE NOT NULL
+                            );
+                            """
+                    , DBConstants.BOOKING_STATUSES));
+
+            stmt.executeUpdate(
+                    String.format(
+                            """
+                                    INSERT INTO %s (status_code) VALUES
+                                    ('BOOKED'),
+                                    ('CANCELLED_BY_USER'),
+                                    ('CANCELLED_BY_ADMIN'),
+                                    ('REFUNDED') ON CONFLICT DO NOTHING;
+                                    """, DBConstants.BOOKING_STATUSES
+                    )
+            );
+
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         booking_seat_id SERIAL PRIMARY KEY,
-                        booking_id INT REFERENCES bookings(booking_id) ON DELETE CASCADE,
-                        seat_id INT REFERENCES seats(seat_id) ON DELETE CASCADE,
-                        passenger_id INT REFERENCES passenger_details(passenger_id),
-                        UNIQUE (booking_id, seat_id),
-                        status VARCHAR(20)
+                        booking_id INT REFERENCES %s(booking_id) ON DELETE CASCADE,
+                        scheduled_seat_id INT REFERENCES %s(scheduled_seat_id) ON DELETE CASCADE,
+                        passenger_id INT REFERENCES %s(passenger_id),
+                        UNIQUE (booking_id, scheduled_seat_id),
+                        status_id INT REFERENCES booking_statuses(status_id) DEFAULT 1
                     );
-                    """);
+                    """, DBConstants.BOOKING_SEATS, DBConstants.BOOKINGS, DBConstants.SCHEDULED_SEATS, DBConstants.PASSENGER_DETAILS));
 
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS city_locations (
-                        city_id INT REFERENCES cities(city_id) ON DELETE CASCADE,
-                        location_id INT REFERENCES locations(location_id) ON DELETE CASCADE,
-                        PRIMARY KEY (city_id, location_id),
-                        UNIQUE (city_id, location_id)
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        city_id INT REFERENCES %s(city_id) ON DELETE CASCADE,
+                        location_id INT REFERENCES %s(location_id) ON DELETE CASCADE,
+                        PRIMARY KEY (city_id, location_id)
                     );
                     
-                    """);
+                    """, DBConstants.CITY_LOCATIONS, DBConstants.CITIES, DBConstants.LOCATIONS));
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        stop_type_id SERIAL PRIMARY KEY,
+                        stop_type_code VARCHAR(30) UNIQUE NOT NULL
+                    )
+                    """, DBConstants.STOP_TYPE));
 
 
-            stmt.executeUpdate("""
-                    CREATE TABLE IF NOT EXISTS stops (
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
                         stop_id SERIAL PRIMARY KEY,
-                        schedule_id INT REFERENCES schedules(schedule_id) ON DELETE CASCADE,
-                        city_id INT REFERENCES cities(city_id),
-                        location_id INT REFERENCES locations(location_id) ON DELETE CASCADE,
-                        type VARCHAR(10) CHECK (type IN ('BOARDING', 'DROPPING')),
-                        time TIME,
-                        UNIQUE(schedule_id, city_id, location_id, type)
+                        schedule_id INT REFERENCES %s(schedule_id) ON DELETE CASCADE,
+                        location_id INT REFERENCES %s(location_id) ON DELETE CASCADE,
+                        stop_type_id INT REFERENCES %s(stop_type_id),
+                        UNIQUE(schedule_id, location_id, stop_type_id)
                     );
-                    """);
+                    """, DBConstants.STOPS, DBConstants.SCHEDULES, DBConstants.LOCATIONS, DBConstants.STOP_TYPE));
 
 
-            stmt.executeUpdate("""
-                        INSERT INTO roles (role_name)
+            stmt.executeUpdate(String.format("""
+                    INSERT INTO %s (stop_type_code) VALUES ('BOARDING'), ('DROPPING') ON CONFLICT DO NOTHING
+                    """, DBConstants.STOP_TYPE));
+
+
+            stmt.executeUpdate(String.format("""
+                        INSERT INTO %s (role_name)
                         VALUES ('ADMIN'), ('DEVELOPER'), ('USER')
                         ON CONFLICT (role_name) DO NOTHING;
-                    """);
+                    """, DBConstants.ROLES));
+
 
             String hashedAdminPassword = PasswordUtil.hashPassword("admin123");
-            String query = "insert into users (username, password) values ('admin','" + hashedAdminPassword + "')" +
-                    "    ON CONFLICT (username) DO NOTHING;";
+
+            String query = String.format("insert into %s (username, password) values ('admin', '%s') ON CONFLICT (username) DO NOTHING;", DBConstants.USERS, hashedAdminPassword);
+
             stmt.executeUpdate(query);
 
 
             String hashUserPassword = PasswordUtil.hashPassword("user");
 
-            stmt.executeUpdate("insert into users (username, password) values ('user', '" + hashUserPassword + "')" +
-                    "    ON CONFLICT (username) DO NOTHING;");
+
+            stmt.executeUpdate(String.format("insert into %s (username, password) values ('user', '%s') ON CONFLICT (username) DO NOTHING;", DBConstants.USERS, hashUserPassword));
 
 
-            stmt.executeUpdate("""
-                    insert into user_roles (user_id, role_id) values (1, 1)
+            stmt.executeUpdate(String.format("""
+                    insert into %s (user_id, role_id) values (1, 1)
                     ON CONFLICT (user_id, role_id) DO NOTHING;
-                    """);
+                    """, DBConstants.USER_ROLES));
 
-            stmt.executeUpdate("insert into user_roles (user_id, role_id) values (2, 3)" +
-                    "    ON CONFLICT (user_id, role_id) DO NOTHING;\n");
+            stmt.executeUpdate(String.format("insert into %s (user_id, role_id) values (2, 3)" +
+                    "    ON CONFLICT (user_id, role_id) DO NOTHING;\n", DBConstants.USER_ROLES));
 
-            stmt.executeUpdate("insert into seat_type (seat_type_name) values ('SEATER'), ('SEMI_SLEEPER'), ('SLEEPER')" +
-                    " ON CONFLICT DO NOTHING;");
+            stmt.executeUpdate(String.format("insert into %s (seat_type_name) values ('SEATER'), ('SEMI_SLEEPER'), ('SLEEPER')" +
+                    " ON CONFLICT DO NOTHING;", DBConstants.SEAT_TYPE));
 
 
-            stmt.executeUpdate("""
-                        INSERT INTO cities (city_name) VALUES
+            stmt.executeUpdate(String.format("""
+                        INSERT INTO %s (city_name) VALUES
                             ('Chennai'), ('Bangalore'), ('Hyderabad'), ('Coimbatore'), ('Madurai')
                         ON CONFLICT (city_name) DO NOTHING;
-                    """);
+                    """, DBConstants.CITIES));
 
 
             try {
 
-            VehicleDAO busVehicleDAO = new BusVehicleDAO();
-            busVehicleDAO.addNew(createSampleBusVehicleDTO());
+                VehicleDAO<BusVehiclesDTO> busVehicleDAO = new BusVehiclesDAO();
+                busVehicleDAO.addNew(createSampleBusVehicleDTO());
+                busVehicleDAO.addNew(createSampleBusVehicleDTO2());
             } catch (Exception e) {
 //                System.err.println(e);
 //                System.out.println("duplicate bus value bro when initializing DB, No problem");
             }
 
 
-
-
-            stmt.executeUpdate("""
-                        INSERT INTO routes (source_city_id, destination_city_id, distance_km, estimated_time)
+            stmt.executeUpdate(String.format("""
+                        INSERT INTO %s (source_city_id, destination_city_id, distance_km, estimated_time)
                         SELECT c1.city_id, c2.city_id, d.distance_km, d.estimated_time
                         FROM
                             (VALUES
@@ -307,55 +416,57 @@ public class DBInitializer {
                                 ('Madurai', 'Chennai', 460, '08:00'::interval),
                                 ('Coimbatore', 'Chennai', 500, '09:00'::interval)
                             ) AS d(source, dest, distance_km, estimated_time)
-                        JOIN cities c1 ON c1.city_name = d.source
-                        JOIN cities c2 ON c2.city_name = d.dest
-                        ON CONFLICT (source_city_id, destination_city_id) DO NOTHING;
-                    """);
-
-            stmt.executeUpdate("""
-                        INSERT INTO schedules (route_id, bus_id, departure_time, arrival_time, price, journey_date)
-                        VALUES
-                            (1, 1, '2025-06-06 08:00:00', '2025-06-06 14:00:00', 600.00, '2025-06-06'),
-                            (2, 1, '2025-06-06 18:00:00', '2025-06-07 05:00:00', 850.00, '2025-06-06'),
-                            (3, 1, '2025-06-06 07:00:00', '2025-06-06 15:00:00', 750.00, '2025-06-06'),
-                            (4, 1, '2025-06-06 06:30:00', '2025-06-06 15:30:00', 720.00, '2025-06-06')
-                        ON CONFLICT (route_id, bus_id, journey_date) DO NOTHING;
-                    """);
+                        JOIN %s c1 ON c1.city_name = d.source
+                        JOIN %s c2 ON c2.city_name = d.dest
+                        ON CONFLICT (source_city_id, destination_city_id, distance_km, estimated_time) DO NOTHING;
+                    """, DBConstants.ROUTES, DBConstants.CITIES, DBConstants.CITIES));
 
 
-            PreparedStatement locationStmt = conn.prepareStatement(
-                    "insert into locations (location_name) values ('Gandhipuram'), ('Lakshmi Mills'), ('Guindy'), ('Tambaram'), ('Arappalayam'), ('Maattuthavani')\n" +
-                            "ON CONFLICT (location_name) DO NOTHING;");
+            PreparedStatement locationStmt = conn.prepareStatement(String.format(
+                    "insert into %s (location_name) values ('Gandhipuram'), ('Lakshmi Mills'), ('Guindy'), ('Tambaram'), ('Arappalayam'), ('Maattuthavani'), " +
+                            "('Charminar'), ('Golconda Fort'), ('Electronic City'), ('Whitefield')\n" +
+                            "ON CONFLICT (location_name) DO NOTHING;", DBConstants.LOCATIONS));
             locationStmt.executeUpdate();
 
-            PreparedStatement cityLocStmt = conn.prepareStatement(
-                    "insert into city_locations values (1, 1), (1, 2), (4, 3), (4, 4), (5, 5), (5, 6) ON CONFLICT (city_id, location_id) DO NOTHING;");
+            PreparedStatement cityLocStmt = conn.prepareStatement(String.format(
+                    "insert into %s values (1, 3), (1, 4), (4, 1), (4, 2), (5, 5), (5, 6), (3, 7), (3, 8), (2, 9), (2, 10) ON CONFLICT (city_id, location_id) DO NOTHING;", DBConstants.CITY_LOCATIONS));
             cityLocStmt.executeUpdate();
 
 
-            PreparedStatement stopStmt = conn.prepareStatement(
-                    """
-                               INSERT INTO stops (schedule_id, city_id, location_id, type, time) VALUES\s
-                               (2, 1, 1, 'BOARDING', '6:00:00'),
-                               (2, 4, 4, 'DROPPING', '12:00:00'),
-                               (2, 1, 2, 'BOARDING', '12:00:00'),
-                               (2, 1, 3, 'DROPPING', '12:00:00'),
-                               (1, 5, 5, 'BOARDING', '12:00:00'),
-                               (1, 5, 6, 'BOARDING', '23:00:00'),
-                               (1, 1, 3, 'DROPPING', '12:00:00'),
-                               (1, 1, 4, 'DROPPING', '13:00:00')
-                               ON CONFLICT (schedule_id, city_id, location_id, type) DO NOTHING;
-                            """
-            );
+            try {
+                SchedulesDTO schedulesDTO = new SchedulesDTO();
+                schedulesDTO.setRouteId(1);
+                schedulesDTO.setBusId(1);
+                schedulesDTO.setDepartureTime("2025-06-06T08:00");
+                schedulesDTO.setArrivalTime("2025-06-06T14:00");
+                schedulesDTO.setPrice(600.00);
+                schedulesDTO.setJourneyDate("2025-06-06");
+                schedulesDTO.setBoardingPointIds(Arrays.asList(5, 6));
+                schedulesDTO.setDroppingPointIds(Arrays.asList(3, 4));
+                ScheduleDAO scheduleDAO = new BusSchedulesDAO();
+                scheduleDAO.addNewSchedule(schedulesDTO);
 
-            stopStmt.executeUpdate();
+//                ------------------------------
+
+                schedulesDTO.setRouteId(2);
+                schedulesDTO.setBusId(2);
+                schedulesDTO.setDepartureTime("2025-06-06T18:00:00");
+                schedulesDTO.setArrivalTime("2025-06-07T05:00:00");
+                schedulesDTO.setPrice(850.00);
+                schedulesDTO.setJourneyDate("2025-06-06");
+                schedulesDTO.setBoardingPointIds(Arrays.asList(1, 2));
+                schedulesDTO.setDroppingPointIds(Arrays.asList(3, 4));
+                scheduleDAO.addNewSchedule(schedulesDTO);
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
 
             System.out.println("Database initialization completed.");
 
 
         } catch (Exception e) {
             e.printStackTrace();
-
             System.err.println("Database initialization failed.");
         }
     }

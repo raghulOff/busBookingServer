@@ -1,22 +1,22 @@
 package com.example.busbooking.dto.bus;
 
-import com.example.busbooking.dto.base.VehicleDTO;
+import com.example.busbooking.dto.base.VehiclesDTO;
 
 import java.util.List;
-import java.util.Map;
 
-public class BusVehicleDTO extends VehicleDTO {
+
+public class BusVehiclesDTO extends VehiclesDTO {
 
     private String busType;
     private int busId;
     private List<SeatGridCount> seatGridCount;
     private List<SeatDetails> seatDetails;
-    private int totalColumns;
+    private Integer totalColumns;
 
     public static class SeatDetails {
-        private int row_number;
-        private int seat_type_id;
-        private int col_number;
+        private Integer row_number;
+        private Integer seat_type_id;
+        private Integer col_number;
         private String pos;
 
         public SeatDetails () {}
@@ -28,11 +28,11 @@ public class BusVehicleDTO extends VehicleDTO {
         }
 
 
-        public int getCol_number() {
+        public Integer getCol_number() {
             return col_number;
         }
 
-        public void setCol_number( int col_number ) {
+        public void setCol_number( Integer col_number ) {
             this.col_number = col_number;
         }
 
@@ -45,27 +45,27 @@ public class BusVehicleDTO extends VehicleDTO {
         }
 
 
-        public int getRow_number() {
+        public Integer getRow_number() {
             return row_number;
         }
 
-        public void setRow_number( int row_number ) {
+        public void setRow_number( Integer row_number ) {
             this.row_number = row_number;
         }
 
-        public int getSeat_type_id() {
+        public Integer getSeat_type_id() {
             return seat_type_id;
         }
 
-        public void setSeat_type_id( int seat_type_id ) {
+        public void setSeat_type_id( Integer seat_type_id ) {
             this.seat_type_id = seat_type_id;
         }
     }
 
     public static class SeatGridCount {
 
-        private int col_number;
-        private int total_rows;
+        private Integer col_number;
+        private Integer total_rows;
         private String pos;
 
         public SeatGridCount() {}
@@ -76,19 +76,19 @@ public class BusVehicleDTO extends VehicleDTO {
         }
 
 
-        public int getCol_number() {
+        public Integer getCol_number() {
             return col_number;
         }
 
-        public void setCol_number( int col_number ) {
+        public void setCol_number( Integer col_number ) {
             this.col_number = col_number;
         }
 
-        public int getTotal_rows() {
+        public Integer getTotal_rows() {
             return total_rows;
         }
 
-        public void setTotal_rows( int total_rows ) {
+        public void setTotal_rows( Integer total_rows ) {
             this.total_rows = total_rows;
         }
 
@@ -102,16 +102,16 @@ public class BusVehicleDTO extends VehicleDTO {
 
     }
 
-    public BusVehicleDTO() {}
+    public BusVehiclesDTO() {}
 
-    public BusVehicleDTO( String vehicleNumber, int totalColumns, String operatorName, int busId, String busType ) {
+    public BusVehiclesDTO( String vehicleNumber, int totalColumns, String operatorName, int busId, String busType ) {
         super(vehicleNumber, operatorName);
         this.totalColumns = totalColumns;
         this.busType = busType;
         this.busId = busId;
     }
 
-    public BusVehicleDTO( String busType, int busId, List<SeatGridCount> seatGridCount, List<SeatDetails> seatDetails, int totalColumns ) {
+    public BusVehiclesDTO( String busType, int busId, List<SeatGridCount> seatGridCount, List<SeatDetails> seatDetails, int totalColumns ) {
         this.busType = busType;
         this.busId = busId;
         this.seatGridCount = seatGridCount;
@@ -137,11 +137,11 @@ public class BusVehicleDTO extends VehicleDTO {
         this.seatDetails = seatDetails;
     }
 
-    public int getTotalColumns() {
+    public Integer getTotalColumns() {
         return totalColumns;
     }
 
-    public void setTotalColumns( int totalColumns ) {
+    public void setTotalColumns( Integer totalColumns ) {
         this.totalColumns = totalColumns;
     }
 
