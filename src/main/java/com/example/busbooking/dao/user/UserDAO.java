@@ -4,6 +4,7 @@ import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.model.Role;
 import com.example.busbooking.model.User;
 import com.example.busbooking.security.PasswordUtil;
+import com.example.busbooking.service.AuthService;
 import jakarta.ws.rs.core.Response;
 
 import java.sql.*;
@@ -20,16 +21,6 @@ import static com.example.busbooking.db.DBConstants.*;
  * adding users, retrieving users, and fetching available roles.
  */
 public class UserDAO {
-
-
-    // SQL to insert username and password
-    public static final String insert_un_pass_query = String.format("INSERT INTO %s (username, password) VALUES (?, ?)", USERS);
-
-    // SQL to get the role ID from a role name.
-    public static final String select_role_id_query = String.format("SELECT role_id FROM %s WHERE role_name = ?", ROLES);
-
-    // SQL to map user ID and role ID in the USER_ROLES table.
-    public static final String insert_user_role_query = String.format("INSERT INTO %s (user_id, role_id) VALUES (?, ?)", USER_ROLES);
 
     // SQL to get the user details.
     public static final String get_user_details_query = String.format("SELECT u.username, u.password, r.role_name, r.role_id, ur.user_id " +
@@ -50,9 +41,6 @@ public class UserDAO {
     public static void addUser( User user ) throws Exception {
 
         Connection conn = null;
-        PreparedStatement insertUserStmt = null;
-        PreparedStatement getRoleIdStmt = null;
-        PreparedStatement insertUserRoleStmt = null;
 
         try {
             conn = DBConnection.getConnection();
@@ -62,60 +50,26 @@ public class UserDAO {
             // Hashing the password before storing it in the DB
             String hashPassword = PasswordUtil.hashPassword(user.getPassword());
 
-            // Inserting username and hashed password.
-            insertUserStmt = conn.prepareStatement(insert_un_pass_query, Statement.RETURN_GENERATED_KEYS);
-            insertUserStmt.setString(1, user.getUsername());
-            insertUserStmt.setString(2, hashPassword);
+            Integer userId = AuthService.addUserAndReturnId(user.getUsername(), hashPassword, conn);
 
-            insertUserStmt.executeUpdate();
-
-            int userId;
-            try (ResultSet generatedKeys = insertUserStmt.getGeneratedKeys()) {
-
-                // If the username/password cannot be added, then throws SQL exception.
-                if (!generatedKeys.next()) {
-                    throw new SQLException("Failed to retrieve generated user_id.");
-                }
-
-                // Generated user ID after inserting username and password
-                userId = generatedKeys.getInt(1);
+            if (userId == null) {
+                throw new SQLException("Failed to retrieve generated user_id.");
             }
 
-            // GET the role ID using role name.
-            getRoleIdStmt = conn.prepareStatement(select_role_id_query);
-            getRoleIdStmt.setString(1, user.getRole().name().toUpperCase());
+            int roleId = user.getRole().getId();
 
-            ResultSet roleRs = getRoleIdStmt.executeQuery();
-
-            // RETURN if the role is not found.
-            if (!roleRs.next()) {
-                throw new SQLException("Role not found: " + user.getRole().name());
-            }
-
-
-            int roleId = roleRs.getInt("role_id");
-
-            // Map user ID and role ID into the USER_ROLES table
-            insertUserRoleStmt = conn.prepareStatement(insert_user_role_query);
-            insertUserRoleStmt.setInt(1, userId);
-            insertUserRoleStmt.setInt(2, roleId);
-            insertUserRoleStmt.executeUpdate();
+            AuthService.insertUserRoleMapping(userId, roleId, conn);
 
             conn.commit(); // Commit transaction
 
         } catch (Exception e) {
 
-            DBConnection.closeConnection(conn);
+            DBConnection.rollbackConnection(conn);
             System.out.println(e.getMessage());
             throw e;
 
         } finally {
-
             DBConnection.closeConnection(conn);
-            DBConnection.closePreparedStatement(insertUserStmt);
-            DBConnection.closePreparedStatement(getRoleIdStmt);
-            DBConnection.closePreparedStatement(insertUserRoleStmt);
-
         }
     }
 

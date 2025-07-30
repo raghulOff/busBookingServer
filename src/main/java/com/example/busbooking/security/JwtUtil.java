@@ -28,20 +28,22 @@ public class JwtUtil {
                 .sign(Algorithm.HMAC256(SECRET));
     }
 
+    // Generating JTI with current timestamp
     private static String generateJti() {
         return "jti-" + System.currentTimeMillis();  // Example: Use the current timestamp to generate a unique ID
     }
 
+    public static String getSecret() {return SECRET;}
+
 
     // a new verifier is generated with the secret key and verifies it with the token received.
-    public static String getSecret() {return SECRET;}
     public static DecodedJWT verifyToken(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(SECRET)).build();
         return verifier.verify(token);
     }
 
 
-
+    // Extracting the jti UNIQUE identifier from JWT token
     public static String getJtiFromToken(String token) {
         try {
             DecodedJWT decodedJWT = verifyToken(token);

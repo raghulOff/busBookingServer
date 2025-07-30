@@ -3,11 +3,11 @@ package com.example.busbooking.service;
 import com.example.busbooking.dto.base.BookingSeatsDTO;
 import com.example.busbooking.model.BookingStatus;
 import com.example.busbooking.model.Role;
-import jakarta.ws.rs.core.Response;
+import com.example.busbooking.model.ScheduledSeatStatus;
+import jakarta.ws.rs.BadRequestException;
 
 
 import java.sql.*;
-import java.util.PropertyPermission;
 
 import static com.example.busbooking.db.DBConstants.*;
 
@@ -22,7 +22,7 @@ import static com.example.busbooking.db.DBConstants.*;
 public class BookingsService {
     // QUERY TO CHECK IF THE SEAT IS BOOKED OR NOT
     private static final String check_seat_status_query = String.format("""
-            select status from %s where scheduled_seat_id = ?;
+            select status_id from %s where scheduled_seat_id = ?;
             """, SCHEDULED_SEATS);
     // query to insert a new booking in bookings table
     private static final String booking_insert_query = String.format("insert into %s\n" +
@@ -42,7 +42,7 @@ public class BookingsService {
             "select schedule_id from %s where scheduled_seat_id = ?", SCHEDULED_SEATS);
 
     // updates a seat from available to booked (where status is set to true);
-    private static final String seat_update_query = String.format("update %s set status = true where scheduled_seat_id = ?;",
+    private static final String seat_update_query = String.format("update %s set status_id = ? where scheduled_seat_id = ?;",
             SCHEDULED_SEATS);
 
 
@@ -55,7 +55,7 @@ public class BookingsService {
             """, BOOKING_SEATS, BOOKINGS);
 
     // query to make the seat available again in the seats table.
-    private static final String update_seats_status_user_id_query = String.format("update %s set status = false where scheduled_seat_id = ?", SCHEDULED_SEATS);
+    private static final String update_seats_status_user_id_query = String.format("update %s set status_id = ? where scheduled_seat_id = ?", SCHEDULED_SEATS);
 
     // query to cancel the seat of a booked id in the booking_seats table (where status is set to false)
     private static final String update_booking_seats_status_query = String.format("update %s set status_id = ? where scheduled_seat_id = ?",
@@ -105,7 +105,7 @@ public class BookingsService {
      * @throws SQLException If SQL insert fails
      */
 
-    public static int addNewPassenger( Connection conn, BookingSeatsDTO.PassengerDetailsDTO passengerDetail ) throws SQLException {
+    public static int addNewPassenger( Connection conn, BookingSeatsDTO.PassengerDetailsDTO passengerDetail ) throws Exception {
         int passengerId = 0;
 
         // Add new passenger and return the generated passenger ID
@@ -136,7 +136,7 @@ public class BookingsService {
      * @throws SQLException If SQL insert fails
      */
 
-    public static void insertBookingSeats( Connection conn, int bookingId, int passengerId, BookingSeatsDTO.PassengerDetailsDTO passengerDetail ) throws SQLException {
+    public static void insertBookingSeats( Connection conn, int bookingId, int passengerId, BookingSeatsDTO.PassengerDetailsDTO passengerDetail ) throws Exception {
 
         // Inserting booking ID, scheduled seat ID, passenger ID into BOOKING_SEATS table.
         try (PreparedStatement seatsStatement = conn.prepareStatement(booking_seats_insert_query)) {
@@ -180,15 +180,17 @@ public class BookingsService {
 
 
     /**
-     * Checks whether a seat is available for the given schedule.
-     * (i.e. Checks if the seat is already booked (status = true))
+     * Checks whether a scheduled seat is available for the given schedule.
+     * (i.e. Checks if the scheduled seat is already booked or blocked (status_id != 1))
+     * (1 -> AVAILABLE, 2 -> BOOKED, 3 -> BLOCKED)
      *
      * @param scheduledSeatId Seat ID to validate
      * @param conn            DB connection
-     * @return true if the seat is already booked or mismatched with the scheduleId, false otherwise
-     * @throws SQLException If any SQL fails
+     * @return true if the seat is not available (i.e. BOOKED / BLOCKED) or false if the seat is available
+     * @throws Exception If any error.
      */
-    public static boolean checkSeatStatus( int scheduledSeatId, Connection conn ) throws SQLException {
+
+    public static boolean checkSeatStatus( int scheduledSeatId, Connection conn ) throws Exception {
 
         // To check seat status
         try (PreparedStatement statement = conn.prepareStatement(check_seat_status_query)) {
@@ -198,7 +200,10 @@ public class BookingsService {
             try (ResultSet rs = statement.executeQuery()) {
 
                 if (rs.next()) {
-                    return rs.getBoolean("status");
+                    int status_id = rs.getInt("status_id");
+                    if (status_id == ScheduledSeatStatus.AVAILABLE.getId()) {
+                        return false;
+                    } else return true;
                 }
             }
         }
@@ -224,7 +229,7 @@ public class BookingsService {
 
 
     /**
-     * Change the status of the scheduled seat to booked (true)
+     * Change the status of the scheduled seat to booked
      *
      * @param scheduledSeatId scheduled seat ID
      * @param conn DB Connection
@@ -232,8 +237,8 @@ public class BookingsService {
      */
     public static void markSeatAsBooked( int scheduledSeatId, Connection conn ) throws Exception {
         try (PreparedStatement updateSeatStatement = conn.prepareStatement(seat_update_query);) {
-
-            updateSeatStatement.setInt(1, scheduledSeatId);
+            updateSeatStatement.setInt(1, ScheduledSeatStatus.BOOKED.getId()); // 2 refers to booked state.
+            updateSeatStatement.setInt(2, scheduledSeatId);
             updateSeatStatement.executeUpdate();
         }
     }
@@ -263,6 +268,8 @@ public class BookingsService {
                     if (userId == loggedInUserId) {
                         return true;
                     }
+                } else {
+                    throw new BadRequestException("Scheduled seat is blocked or scheduled seat doesn't exist.");
                 }
             }
         }
@@ -279,7 +286,8 @@ public class BookingsService {
      */
     public static void markScheduledSeatAsAvailable(int scheduledSeatId, Connection conn) throws Exception {
         try (PreparedStatement statement = conn.prepareStatement(update_seats_status_user_id_query)) {
-            statement.setInt(1, scheduledSeatId);
+            statement.setInt(1, ScheduledSeatStatus.AVAILABLE.getId());
+            statement.setInt(2, scheduledSeatId);
             statement.executeUpdate();
         }
     }

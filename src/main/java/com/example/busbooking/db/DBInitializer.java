@@ -277,16 +277,23 @@ public class DBInitializer {
                     );
                     """, DBConstants.BOOKINGS, DBConstants.USERS, DBConstants.SCHEDULES, DBConstants.LOCATIONS, DBConstants.LOCATIONS));
 
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        status_id SERIAL PRIMARY KEY,
+                        status_code VARCHAR(30) UNIQUE NOT NULL
+                    )
+                    """, DBConstants.SCHEDULED_SEAT_STATUSES));
 
             stmt.executeUpdate(String.format("""
                     CREATE TABLE IF NOT EXISTS %s (
                         scheduled_seat_id SERIAL PRIMARY KEY,
                         seat_id INT REFERENCES %s(seat_id) ON DELETE CASCADE,
                         schedule_id INT REFERENCES %s(schedule_id) ON DELETE CASCADE,
-                        status BOOLEAN DEFAULT false
+                        status_id INT REFERENCES %s(status_id) DEFAULT 1
                     )
-                    """, DBConstants.SCHEDULED_SEATS, DBConstants.SEATS, DBConstants.SCHEDULES));
+                    """, DBConstants.SCHEDULED_SEATS, DBConstants.SEATS, DBConstants.SCHEDULES, DBConstants.SCHEDULED_SEAT_STATUSES));
 
+//            status BOOLEAN DEFAULT false
 
             stmt.executeUpdate(String.format(
                     """
@@ -350,6 +357,10 @@ public class DBInitializer {
                     );
                     """, DBConstants.STOPS, DBConstants.SCHEDULES, DBConstants.LOCATIONS, DBConstants.STOP_TYPE));
 
+
+            stmt.executeUpdate(String.format("""
+                    INSERT INTO %s (status_code) VALUES ('AVAILABLE'), ('BOOKED'), ('BLOCKED') ON CONFLICT DO NOTHING
+                    """, DBConstants.SCHEDULED_SEAT_STATUSES));
 
             stmt.executeUpdate(String.format("""
                     INSERT INTO %s (stop_type_code) VALUES ('BOARDING'), ('DROPPING') ON CONFLICT DO NOTHING

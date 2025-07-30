@@ -22,7 +22,7 @@ import static com.example.busbooking.db.DBConstants.*;
  * seat details, and seat types.
  */
 
-public class AddBusService {
+public class BusService {
 
     // SQL to add a new bus into BUSES table.
     private static final String insert_into_buses_table_query = String.format("insert into %s (bus_number, operator_name, bus_type, total_columns)" +
@@ -41,6 +41,10 @@ public class AddBusService {
     // SQL to get all the seat types.
     private static final String get_seat_types_query = String.format("select seat_type_id, seat_type_name from %s", SEAT_TYPE);
 
+    // SQL to check if a bus is assigned with a schedule.
+    private static final String check_bus_assigned_to_schedule_query = String.format("""
+            select schedule_id from %s where bus_id = ?;
+            """, SCHEDULES);
 
     /**
      * Inserts a new bus into the database.
@@ -240,4 +244,24 @@ public class AddBusService {
 
         }
     }
+
+    /**
+     * Check if a bus is assigned with a schedule
+     * @param busId bus ID
+     * @param conn DB Connection
+     * @return true if the bus is assigned with a schedule, else return false
+     * @throws Exception if any error.
+     */
+    public static boolean checkBusAssignedWithSchedule(int busId, Connection conn) throws Exception {
+        try (PreparedStatement statement = conn.prepareStatement(check_bus_assigned_to_schedule_query);) {
+            statement.setInt(1, busId);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
 }

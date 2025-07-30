@@ -1,7 +1,7 @@
 package com.example.busbooking.dao.location;
 
-import com.example.busbooking.dao.bus.BusSchedulesDAO;
 import com.example.busbooking.db.DBConnection;
+import com.example.busbooking.service.LocationService;
 import com.example.busbooking.service.ScheduleService;
 import jakarta.ws.rs.core.Response;
 
@@ -29,11 +29,7 @@ public class LocationsDAO {
             where (s.schedule_id = ? and s.stop_type_id = ?)
             """, STOPS, LOCATIONS);
 
-    // SQL to add a new location
-    private static final String add_new_location_query = String.format("insert into %s (location_name) values (?);", LOCATIONS);
 
-    // SQL to insert the association mapping data between city and location in the CITY_LOCATIONS table.
-    private static final String add_new_city_location_query = String.format("insert into %s (city_id, location_id) values (?, ?);", CITY_LOCATIONS);
 
 
     // Query to return ID and name of locations associated with a city
@@ -146,34 +142,27 @@ public class LocationsDAO {
             conn.setAutoCommit(false);
 
             // Add new location and return the generated Location ID
-            locationStatement = conn.prepareStatement(add_new_location_query, Statement.RETURN_GENERATED_KEYS);
-            cityLocationStatement = conn.prepareStatement(add_new_city_location_query);
-            locationStatement.setString(1, locationName);
+            Integer locationId = LocationService.addLocationReturnGeneratedID(locationName, conn);
 
-            int locationId = 0;
-            locationStatement.executeUpdate();
-
-            // If the location is inserted, the location ID generated is assigned to variable `locationId`
-            try (ResultSet locationRs = locationStatement.getGeneratedKeys();) {
-                if (locationRs.next()) {
-                    locationId = locationRs.getInt(1);
-                }
+            if (locationId == null) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error.").build();
             }
 
-            // Mapping location with city in the CITY_LOCATIONS table.
-            cityLocationStatement.setInt(1, cityId);
-            cityLocationStatement.setInt(2, locationId);
-
-            cityLocationStatement.executeUpdate();
+            LocationService.mapLocationWithCity(cityId, locationId, conn);
 
             conn.commit();
         } catch (SQLException exception) {
 
+            if (exception.getSQLState().equals(UNIQUE_VIOLATION)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Location already exist.").build();
+            }
             DBConnection.rollbackConnection(conn);
             System.out.println(exception.getMessage());
+
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input.").build();
 
         } catch (Exception e) {
+
             DBConnection.rollbackConnection(conn);
             throw e;
 
@@ -216,10 +205,8 @@ public class LocationsDAO {
                     locations.add(location);
                 }
             }
-
         }
 
         return Response.ok("Locations retrieved.").entity(locations).build();
     }
-
 }

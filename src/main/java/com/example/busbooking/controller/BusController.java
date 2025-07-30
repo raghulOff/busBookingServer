@@ -6,7 +6,7 @@ import com.example.busbooking.dao.base.VehicleDAO;
 import com.example.busbooking.dto.bus.BusSearchRequestDTO;
 import com.example.busbooking.dto.bus.BusVehiclesDTO;
 import com.example.busbooking.model.Role;
-import com.example.busbooking.service.AddBusService;
+import com.example.busbooking.service.BusService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -122,7 +122,7 @@ public class BusController {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
     public Response getSeatTypes () throws Exception {
-        return AddBusService.getSeatTypes();
+        return BusService.getSeatTypes();
     }
 
 

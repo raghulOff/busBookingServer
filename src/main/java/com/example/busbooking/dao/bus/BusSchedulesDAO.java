@@ -44,29 +44,16 @@ public class BusSchedulesDAO implements ScheduleDAO {
 
     // SQL to retrieve scheduled seat details like seat ID, seat type, row no, col no etc.
     private static final String get_seat_details_query = String.format("""
-            select s.row_number, sg.col_number, ss.status, sg.pos, s.seat_type_id, s.seat_number, ss.scheduled_seat_id, st.seat_type_name
+            select s.row_number, sg.col_number, ss_statuses.status_code, sg.pos, s.seat_type_id, s.seat_number, ss.scheduled_seat_id, st.seat_type_name
             from %s s
             join %s sg on s.column_id = sg.column_id
             join %s st on st.seat_type_id = s.seat_type_id
             join %s ss on ss.seat_id = s.seat_id
+            join %s ss_statuses on ss_statuses.status_id = ss.status_id
             where ss.schedule_id = ? order by ss.scheduled_seat_id;
-            """, SEATS, SEAT_GRID_COLUMNS, SEAT_TYPE, SCHEDULED_SEATS);
+            """, SEATS, SEAT_GRID_COLUMNS, SEAT_TYPE, SCHEDULED_SEATS, SCHEDULED_SEAT_STATUSES);
 
-    // SQL to get all the seats associated with the bus ID from seat_grid_columns table
-    // For each column of a bus ID in the SEAT_GRID_COLUMNS table their respective rows are in the SEATS table.
-    private static final String get_seat_id_query = String.format("""
-            select seat_id
-            from %s s
-            join %s sg on s.column_id = sg.column_id
-            where sg.bus_id = ?
-            """, SEATS, SEAT_GRID_COLUMNS);
 
-    // SQL to insert the seats of a bus in the SCHEDULED SEATS table
-    // This helps to keep track of seat status in particular to a schedule.
-    private static final String insert_scheduled_seats_query = String.format("""
-            insert into %s (seat_id, schedule_id, status)
-            values (?, ?, false);
-            """, SCHEDULED_SEATS);
 
 
     // SQL to check if a schedule exist.
@@ -84,24 +71,8 @@ public class BusSchedulesDAO implements ScheduleDAO {
             where schedule_id = ?
             """, SCHEDULES);
 
-    // Query to delete a scheduled seat.
-    private static final String delete_scheduled_seats = String.format("""
-            delete from %s where schedule_id = ?
-            """, SCHEDULED_SEATS);
 
-    // Query to get bus ID associated with a schedule ID
-    private static final String get_schedule_id_bus_id_query = String.format("select schedule_id, bus_id from %s where schedule_id = ?;", SCHEDULES);
-
-    // SQL to insert location stops (BOARDING/DROPPING)
-    private static final String insert_stops_query = String.format("insert into %s (schedule_id, location_id, stop_type_id) values (?, ?, ?)", STOPS);
-
-    // SQL to get source and destination ID from route ID
-    private static final String get_source_destination_from_route_id_query = String.format("select source_city_id, destination_city_id from %s where route_id = ?", ROUTES);
-
-    // SQL to get the respective city of a location.
-    private static final String get_city_from_location_id_query = String.format("select city_id from %s where location_id = ?", CITY_LOCATIONS);
-
-    // SQL to cancel the booking seats status to be cancelled.
+    // SQL to change the booking seats status to be cancelled.
     private static final String update_booking_seats_status_id_query = String.format("""
                         UPDATE %s
                         SET status_id = ?
@@ -109,7 +80,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
                                 SELECT booking_id
                                 FROM bookings
                                 WHERE schedule_id = ?
-                        ) and status_id = 1;
+                        ) and status_id = ?;
             """, BOOKING_SEATS);
 
 
@@ -175,17 +146,6 @@ public class BusSchedulesDAO implements ScheduleDAO {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
         }
 
-        LocalDate journeyDate;
-        LocalDateTime departure;
-        LocalDateTime arrival;
-        try {
-            journeyDate = LocalDate.parse(schedulesDTO.getJourneyDate());
-            departure = LocalDateTime.parse(schedulesDTO.getDepartureTime());
-            arrival = LocalDateTime.parse(schedulesDTO.getArrivalTime());
-        } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input." + e.getMessage()).build();
-        }
-
         Connection conn = null;
 
         try {
@@ -193,25 +153,30 @@ public class BusSchedulesDAO implements ScheduleDAO {
             conn.setAutoCommit(false);
 
             // Adding new schedule
-
-            Integer scheduleId = ScheduleService.createScheduleWithGeneratedId(schedulesDTO, journeyDate, departure, arrival, conn);
+            Integer scheduleId = ScheduleService.createScheduleWithGeneratedId(schedulesDTO, conn);
 
             // Set the schedule ID.
             schedulesDTO.setScheduleId(scheduleId);
 
             // This function adds scheduled seats in the scheduled_seats table.
-            addScheduledSeats(schedulesDTO, conn);
+            ScheduleService.addScheduledSeats(schedulesDTO, conn);
 
             // This function adds the stops for BOARDING / DROPPING points.
-            addStops(conn, scheduleId, "BOARDING", schedulesDTO.getBoardingPointIds(), schedulesDTO.getRouteId());
-            addStops(conn, scheduleId, "DROPPING", schedulesDTO.getDroppingPointIds(), schedulesDTO.getRouteId());
+            ScheduleService.addStops(conn, scheduleId, "BOARDING", schedulesDTO.getBoardingPointIds(), schedulesDTO.getRouteId());
+            ScheduleService.addStops(conn, scheduleId, "DROPPING", schedulesDTO.getDroppingPointIds(), schedulesDTO.getRouteId());
 
             conn.commit();
 
-        } catch (Exception e) {
+        } catch (BadRequestException badRequestException) {
+
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Date/Time input.").build();
+
+        }
+
+        catch (Exception e) {
 
             DBConnection.rollbackConnection(conn);
-            System.out.println(e.getMessage());
+//            System.out.println(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unable To Add New Schedule").build();
 
         } finally {
@@ -222,64 +187,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
         return Response.ok().entity("Schedule created").build();
     }
 
-    /**
-     * Inserts stop details (either boarding or dropping) for a schedule.
-     *
-     * @param connection  JDBC connection
-     * @param scheduleId  the schedule's ID
-     * @param type        "BOARDING" or "DROPPING"
-     * @param locationIds list of location IDs to be inserted
-     * @param routeId     route ID to validate city associations
-     * @throws Exception if stop cities don't match route cities
-     */
 
-    private void addStops( Connection connection, int scheduleId, String type, List<Integer> locationIds, int routeId ) throws Exception {
-
-        Integer required_city_id = null;
-        Integer stop_type = ScheduleService.getStopTypeId(type);
-
-        // Any stop location going to be added in the schedule must be a part of the source city or destination city based on the
-        // type (BOARDING / DROPPING)
-
-        try (PreparedStatement statement = connection.prepareStatement(get_source_destination_from_route_id_query);) {
-            statement.setInt(1, routeId);
-            try (ResultSet rs = statement.executeQuery()) {
-                if (rs.next()) {
-                    if (type.equals("BOARDING")) {
-                        required_city_id = rs.getInt("source_city_id");
-                    } else {
-                        required_city_id = rs.getInt("destination_city_id");
-                    }
-                }
-            }
-        }
-
-
-        try (PreparedStatement stopStatement = connection.prepareStatement(insert_stops_query);
-             PreparedStatement cityStatement = connection.prepareStatement(get_city_from_location_id_query);) {
-
-            // For each location ID, add the location in the stops table.
-            for (Integer locationId : locationIds) {
-
-                cityStatement.setInt(1, locationId);
-                try (ResultSet rs = cityStatement.executeQuery()) {
-
-                    // If the associated city of a location is not the same as required city then throws exception
-                    if (rs.next()) {
-                        if (required_city_id != null && rs.getInt("city_id") != required_city_id) {
-                            throw new BadRequestException();
-                        }
-                    }
-                }
-
-                stopStatement.setInt(1, scheduleId);
-                stopStatement.setInt(2, locationId);
-                stopStatement.setInt(3, stop_type);
-                stopStatement.addBatch();
-            }
-            stopStatement.executeBatch();
-        }
-    }
 
     /**
      * Retrieves detailed information about a specific schedule,
@@ -289,7 +197,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
      * @return Response containing BusSchedulesDetailsDTO or error if not found
      */
 
-    public Response getScheduleDetails( int scheduleId ) {
+    public Response getScheduleDetails( int scheduleId ) throws Exception {
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement scheduleStatement = conn.prepareStatement(get_schedule_details_query);
@@ -319,7 +227,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
                     while (seatRs.next()) {
                         seats.add(new BusSchedulesDetailsDTO.SeatDTO(seatRs.getString("seat_type_name"),
                                 seatRs.getInt("seat_type_id"), seatRs.getString("pos"),
-                                seatRs.getString("seat_number"), seatRs.getString("status"),
+                                seatRs.getString("seat_number"), seatRs.getString("status_code"),
                                 seatRs.getInt("row_number"), seatRs.getInt("col_number"),
                                 seatRs.getInt("scheduled_seat_id")));
                     }
@@ -338,14 +246,9 @@ public class BusSchedulesDAO implements ScheduleDAO {
 
             return Response.ok(sd).build();
 
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Something went wrong").build();
         }
     }
 
-    private static final String check_schedule_status_query = String.format("""
-            select status_id from %s where schedule_id = ?
-            """, SCHEDULES);
 
 
     /**
@@ -357,30 +260,28 @@ public class BusSchedulesDAO implements ScheduleDAO {
 
 
     public Response cancelSchedule( int scheduleId ) throws Exception {
+        Connection conn = null;
+        PreparedStatement updateScheduleStatement = null, updateBookingSeatsStatusStatement = null;
+        try {
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement updateScheduleStatement = conn.prepareStatement(update_schedule_status_query);
-             PreparedStatement updateBookingSeatsStatusStatement = conn.prepareStatement(update_booking_seats_status_id_query);
-             PreparedStatement checkScheduleStatusStatement = conn.prepareStatement(check_schedule_status_query)) {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            updateScheduleStatement = conn.prepareStatement(update_schedule_status_query);
+            updateBookingSeatsStatusStatement = conn.prepareStatement(update_booking_seats_status_id_query);
 
             // Check if schedule is already cancelled
-            checkScheduleStatusStatement.setInt(1, scheduleId);
-
-            try (ResultSet checkScheduleStatusRs = checkScheduleStatusStatement.executeQuery()) {
-                if (checkScheduleStatusRs.next()) {
-                    if (checkScheduleStatusRs.getInt(1) != ScheduleStatus.ACTIVE.getId()) { // 1 refers to active state
-                        return Response.status(Response.Status.BAD_REQUEST).entity("Schedule already cancelled.").build();
-                    }
-                } else {
-                    // If the schedule doesn't exist.
-                    return Response.status(Response.Status.BAD_REQUEST).entity("Schedule doesn't exist.").build();
-                }
+            if (!ScheduleService.validateScheduleIsActive(scheduleId, conn)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Schedule already cancelled / Schedule doesn't exist.").build();
             }
 
+            // Change the scheduled seats statuses to BLOCKED after cancelling the schedule
+            ScheduleService.updateScheduledSeatsStatusToBlocked(scheduleId, conn);
 
             // Change the status_id in the bookings_seats table to 3 (cancelled by admin)
             updateBookingSeatsStatusStatement.setInt(1, BookingStatus.CANCELLED_BY_ADMIN.getId());
             updateBookingSeatsStatusStatement.setInt(2, scheduleId);
+            updateBookingSeatsStatusStatement.setInt(3, BookingStatus.BOOKED.getId());
             updateBookingSeatsStatusStatement.executeUpdate();
 
             // Change the status_id in the schedules table to 2 (cancelled)
@@ -388,18 +289,24 @@ public class BusSchedulesDAO implements ScheduleDAO {
             updateScheduleStatement.setInt(2, scheduleId);
             updateScheduleStatement.executeUpdate();
 
+            conn.commit();
             return Response.ok("Schedule Cancelled.").build();
+
+        } catch (Exception e) {
+
+            DBConnection.rollbackConnection(conn);
+            System.out.println(e.getMessage());
+            throw e;
+
+        } finally {
+
+            DBConnection.closeConnection(conn);
+            DBConnection.closePreparedStatement(updateScheduleStatement);
+            DBConnection.closePreparedStatement(updateBookingSeatsStatusStatement);
+
         }
     }
 
-
-
-    // Query to check if a booking exist for a particular schedule.
-    public static final String check_booking_schedule_exist_query = String.format("""
-            select b.booking_id
-            from %s b
-            where b.schedule_id = ?;
-            """, BOOKINGS);
 
     /**
      * Updates an existing schedule and resets seat mapping
@@ -424,42 +331,20 @@ public class BusSchedulesDAO implements ScheduleDAO {
             departure = LocalDateTime.parse(schedulesDTO.getDepartureTime());
             arrival = LocalDateTime.parse(schedulesDTO.getArrivalTime());
         } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input." + e.getMessage()).build();
+            System.out.println(e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input.").build();
         }
 
 
         Connection conn = null;
-        PreparedStatement busIdStatement = null, statement = null, deleteStatement = null, checkBookingStatement = null;
+        PreparedStatement statement = null;
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
 
-            // Check if any booking exist for this schedule. If exist then this schedule cannot be updated.
-            checkBookingStatement = conn.prepareStatement(check_booking_schedule_exist_query);
-            checkBookingStatement.setInt(1, schedulesDTO.getScheduleId());
-
-            try (ResultSet bookingRs = checkBookingStatement.executeQuery()) {
-                if (bookingRs.next()) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("The schedule cannot be updated as bookings have already been made for it.").build();
-                }
-            }
-
-
-            // GET the BUS associated with the schedule ID
-            busIdStatement = conn.prepareStatement(get_schedule_id_bus_id_query);
-            busIdStatement.setInt(1, schedulesDTO.getScheduleId());
-
-            Integer existingBusId;
-            try (ResultSet busIdRs = busIdStatement.executeQuery()) {
-                existingBusId = null;
-
-                // If the schedule ID is not found, then return.
-                if (busIdRs.next()) {
-                    existingBusId = busIdRs.getInt("bus_id");
-                } else {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
-                }
+            if (ScheduleService.hasBookingsForSchedule(schedulesDTO.getScheduleId(), conn)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("The schedule cannot be updated as bookings have already been made for it.").build();
             }
 
             // Update all the schedule details.
@@ -474,18 +359,17 @@ public class BusSchedulesDAO implements ScheduleDAO {
             statement.executeUpdate();
 
 
+            // GET the BUS associated with the schedule ID
+            Integer existingBusId = ScheduleService.getBusIdByScheduleId(schedulesDTO.getScheduleId(), conn);
+
+            if (existingBusId == null) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid bus ID").build();
+            }
+
             // Suppose the BUS is updated by the user, then the previous bus scheduled seats should be removed
             // and the new bus scheduled seats should be added.
+            ScheduleService.updateScheduledSeatsIfBusChanged(existingBusId, schedulesDTO.getBusId(), schedulesDTO, conn);
 
-            if (!existingBusId.equals(schedulesDTO.getBusId())) {
-                // removes the existing scheduled seats because once the bus changes, new set of seats should be added in the scheduled_seats table.
-                deleteStatement = conn.prepareStatement(delete_scheduled_seats);
-                deleteStatement.setInt(1, schedulesDTO.getScheduleId());
-                deleteStatement.executeUpdate();
-
-                // adds the new scheduled seats;
-                addScheduledSeats(schedulesDTO, conn);
-            }
 
             conn.commit();
         } catch (Exception e) {
@@ -495,48 +379,11 @@ public class BusSchedulesDAO implements ScheduleDAO {
 
         } finally {
 
-            DBConnection.closePreparedStatement(busIdStatement);
             DBConnection.closePreparedStatement(statement);
-            DBConnection.closePreparedStatement(deleteStatement);
 
         }
         return Response.ok().entity("Schedule updated.").build();
     }
 
 
-    /**
-     * Adds all seat entries for a bus into the scheduled_seats table for a specific schedule
-     * This links each physical seat with the given schedule, initializing them as unbooked
-     *
-     * @param schedulesDTO schedule data with bus ID and generated schedule ID
-     * @param conn         JDBC connection
-     * @throws Exception in case of SQL errors
-     */
-
-    private void addScheduledSeats( SchedulesDTO schedulesDTO, Connection conn ) throws Exception {
-        PreparedStatement statement = null, insertScheduledSeatsStatement = null;
-        try {
-            // Fetch all seat IDs associated with the bus
-            statement = conn.prepareStatement(get_seat_id_query);
-            statement.setInt(1, schedulesDTO.getBusId());
-            try (ResultSet rs = statement.executeQuery()) {
-
-                // Prepare to insert those seats into the scheduled_seats table for the current schedule
-                insertScheduledSeatsStatement = conn.prepareStatement(insert_scheduled_seats_query);
-
-                while (rs.next()) {
-                    insertScheduledSeatsStatement.setInt(1, rs.getInt("seat_id"));
-                    insertScheduledSeatsStatement.setInt(2, schedulesDTO.getScheduleId());
-                    insertScheduledSeatsStatement.addBatch();
-                }
-            }
-            insertScheduledSeatsStatement.executeBatch();
-
-        } finally {
-
-            DBConnection.closePreparedStatement(statement);
-            DBConnection.closePreparedStatement(insertScheduledSeatsStatement);
-
-        }
-    }
 }

@@ -8,9 +8,11 @@ import com.example.busbooking.dto.base.BookingsDTO;
 import com.example.busbooking.model.BookingStatus;
 import com.example.busbooking.model.Role;
 import com.example.busbooking.service.BookingsService;
+import com.example.busbooking.service.ScheduleService;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 
-import java.awt.print.Book;
+import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -60,17 +62,6 @@ public class BusBookingsDAO implements BookingsDAO {
                      where b.user_id = ? and b.booking_id = ?;""", BOOKING_SEATS, PASSENGER_DETAILS, BOOKINGS, SCHEDULED_SEATS, SEATS);
 
 
-
-
-    // query to cancel the seat of a booked id in the booking_seats table (where status is set to false)
-    private static final String update_booking_seats_status_query = String.format("update %s set status_id = ? where scheduled_seat_id = ?",
-            BOOKING_SEATS);
-
-    // query to make the seat available again in the seats table.
-    private static final String update_seats_status_user_id_query = String.format("update %s set status = false where scheduled_seat_id = ?", SCHEDULED_SEATS);
-
-    // query to check availability of a scheduled seat
-    private static final String check_seat_status_query = String.format("select status from %s where scheduled_seat_id = ?", SCHEDULED_SEATS);
 
 
 
@@ -210,6 +201,11 @@ public class BusBookingsDAO implements BookingsDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
+            // Validate if the schedule is active first.
+            if (!ScheduleService.validateScheduleIsActive(bookingSeatsDTO.getScheduleId(), conn)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Schedule is inactive or schedule not found.").build();
+            }
+
             // adds a new booking to the bookings table and returns back the generated booking id;
             int bookingId = BookingsService.addNewBooking(conn, bookingSeatsDTO);
 
@@ -223,14 +219,14 @@ public class BusBookingsDAO implements BookingsDAO {
 
                 // check if there is any mismatch in schedule ID from user and schedule ID of scheduledSeatId;
                 Integer scheduleId = BookingsService.getScheduleIdFromScheduledSeatId(passengerDetail.getScheduledSeatId(), conn);
-                if (scheduleId != bookingSeatsDTO.getScheduleId()) {
+                if (scheduleId == null || scheduleId != bookingSeatsDTO.getScheduleId()) {
                     return Response.status(Response.Status.BAD_REQUEST).entity("Mismatch with schedule ID and scheduled seat ID.").build();
                 }
 
 
                 // checks if the seat is already booked or not
-                if (BookingsService.checkSeatStatus(bookingSeatsDTO.getScheduleId(), conn)) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("Seat is already booked.").build();
+                if (BookingsService.checkSeatStatus(passengerDetail.getScheduledSeatId(), conn)) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Seat is not available.").build();
                 }
 
                 // add a new passenger in the passenger_details table and returns back the generated passenger id;
@@ -252,8 +248,8 @@ public class BusBookingsDAO implements BookingsDAO {
             System.err.println(e.getMessage());
             // roll back connection
             DBConnection.rollbackConnection(conn);
-
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Cannot book seats. Something went wrong.").build();
+            throw e;
+//            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Cannot book seats. Something went wrong.").build();
         } finally {
             // roll back connection
             DBConnection.closeConnection(conn);
@@ -310,32 +306,37 @@ public class BusBookingsDAO implements BookingsDAO {
                 bookingStatus = BookingStatus.CANCELLED_BY_USER.getId();
             }
 
-
             // BOOKING_SEATS -> The status is set to false which denotes the seat is cancelled for the booking ID.
             BookingsService.cancelBookedSeatStatus(scheduledSeatId, bookingStatus, conn);
-
 
             // SCHEDULED_SEATS -> Resets the seat status to false which denotes the scheduled seat is available again.
             BookingsService.markScheduledSeatAsAvailable(scheduledSeatId, conn);
 
             conn.commit();
+
             return Response.ok("Ticket cancelled.").build();
 
-        } catch (SQLException e) {
+        } catch (BadRequestException badRequestException) {
+
+            System.out.println(badRequestException.getMessage());
+            DBConnection.rollbackConnection(conn);
+
+            return Response.status(Response.Status.BAD_REQUEST).entity(badRequestException.getMessage()).build();
+        }
+        catch (SQLException e) {
 
             System.out.println(e.getMessage());
             DBConnection.rollbackConnection(conn);
-            DBConnection.closeConnection(conn);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error.").build();
 
         } catch (Exception e) {
 
             System.out.println(e.getMessage());
             DBConnection.rollbackConnection(conn);
-            DBConnection.closeConnection(conn);
 
             throw e;
+        } finally {
+            DBConnection.closeConnection(conn);
         }
     }
 }
-

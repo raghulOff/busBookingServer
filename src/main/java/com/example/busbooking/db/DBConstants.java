@@ -41,7 +41,8 @@ public class DBConstants {
     public static final String SCHEDULE_STATUSES = "schedule_statuses";
     //    Stop type for stops (e.g. BOARDING, DROPPING, HALT etc).
     public static final String STOP_TYPE = "stop_type";
-
+    //    Schedule seat status values (e.g. AVAILABLE, BOOKED, BLOCKED)
+    public static final String SCHEDULED_SEAT_STATUSES = "scheduled_seat_statuses";
 
 
     // Unique constraint violation
@@ -49,9 +50,6 @@ public class DBConstants {
 
     // Foreign key violation (e.g., trying to delete a referenced row)
     public static final String FOREIGN_KEY_VIOLATION = "23503";
-
-
-
 
     private DBConstants() {
     }

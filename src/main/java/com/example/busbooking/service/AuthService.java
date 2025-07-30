@@ -1,5 +1,6 @@
 package com.example.busbooking.service;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.busbooking.dao.user.UserDAO;
 import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.dto.base.UsersDTO;
@@ -13,8 +14,10 @@ import jakarta.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 
 import static com.example.busbooking.db.DBConstants.USERS;
+import static com.example.busbooking.db.DBConstants.USER_ROLES;
 
 
 /**
@@ -26,6 +29,10 @@ public class AuthService {
 
     // SQL to check if a user exists.
     private static final String check_user_exist_query = String.format("SELECT 1 FROM %s WHERE username = ?", USERS);
+    // SQL to map user ID and role ID in the USER_ROLES table.
+    public static final String insert_user_role_query = String.format("INSERT INTO %s (user_id, role_id) VALUES (?, ?)", USER_ROLES);
+    // SQL to insert username and password
+    public static final String insert_un_pass_query = String.format("INSERT INTO %s (username, password) VALUES (?, ?)", USERS);
 
 
     /**
@@ -176,14 +183,70 @@ public class AuthService {
      */
 
     public static Response logoutUser(String token) {
-        String jti = JwtUtil.getJtiFromToken(token);
+        try {
 
-        // Add the expired token to blacklist.
-        BlackListService.addToBlacklist(jti);
+            String jti = JwtUtil.getJtiFromToken(token);
 
-        // Returns back an expired cookie with no token value.
-        NewCookie expiredCookie = new NewCookie("token", "", "/", null, null, 0, false, true);
-        return Response.ok("Logout success").cookie(expiredCookie).build();
+            // Add the expired token to blacklist.
+            BlackListService.addToBlacklist(jti);
+
+            // Returns back an expired cookie with no token value.
+            NewCookie expiredCookie = new NewCookie("token", "", "/", null, null, 0, false, true);
+            return Response.ok("Logout success").cookie(expiredCookie).build();
+
+        } catch (JWTVerificationException jwtVerificationException) {
+
+            System.out.println(jwtVerificationException.getMessage());
+
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("JWT Verification Exception").build();
+        }
     }
 
+
+
+    /**
+     * Adds username and hashed password in the USER table
+     *
+     * @param username username to be stored.
+     * @param password hashed password to be stored
+     * @param conn DB Connection
+     * @return user ID generated after inserting
+     * @throws Exception if any error
+     */
+
+    public static Integer addUserAndReturnId(String username, String password, Connection conn) throws Exception {
+        try (PreparedStatement statement = conn.prepareStatement(insert_un_pass_query, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setString(1, username);
+            statement.setString(2, password);
+
+            statement.executeUpdate();
+
+            try (ResultSet rs = statement.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+            return null;
+        }
+    }
+
+
+
+
+    /**
+     * Insert user role mapping in the user_roles table
+     *
+     * @param userId generated user ID after inserting username and password in users table.
+     * @param roleId Role ID of the new user.
+     * @param conn DB Connection
+     * @throws Exception if any error
+     */
+    public static void insertUserRoleMapping(int userId, int roleId, Connection conn) throws Exception {
+        try (PreparedStatement statement = conn.prepareStatement(insert_user_role_query);) {
+            statement.setInt(1, userId);
+            statement.setInt(2, roleId);
+            statement.executeUpdate();
+        }
+
+    }
 }

@@ -3,6 +3,7 @@ package com.example.busbooking.dao.bus;
 import com.example.busbooking.dao.base.RouteDAO;
 import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.dto.base.RoutesDTO;
+import com.example.busbooking.service.RouteService;
 import jakarta.ws.rs.core.Response;
 import org.postgresql.util.PGInterval;
 
@@ -22,10 +23,6 @@ import static com.example.busbooking.db.DBConstants.*;
  */
 public class BusRoutesDAO implements RouteDAO {
 
-    public static final String check_route_schedule_exist_query = String.format("""
-            select schedule_id
-            from %s where route_id = ?;
-            """, SCHEDULES);
     // SQL to get all the available routes stores in the DB
     private static final String get_all_routes_query = String.format("""
             SELECT\s
@@ -104,7 +101,7 @@ public class BusRoutesDAO implements RouteDAO {
     public Response addNewRoute( RoutesDTO routesDTO ) throws Exception {
 
         // Check for valid parameters
-        if (checkValidRouteDTOValues(routesDTO)) {
+        if (RouteService.checkValidRouteDTOValues(routesDTO)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Input").build();
         }
 
@@ -146,7 +143,7 @@ public class BusRoutesDAO implements RouteDAO {
              PreparedStatement statement = conn.prepareStatement(delete_route_query);) {
 
             // Check if a route is assigned with a schedule. If so then the route cannot be deleted.
-            if (isRouteAssignedToSchedule(conn, routeId)) {
+            if (RouteService.isRouteAssignedToSchedule(conn, routeId)) {
                 return Response.status(Response.Status.CONFLICT).entity("Cannot delete route. This route is assigned to an existing schedule.").build();
             }
 
@@ -182,7 +179,7 @@ public class BusRoutesDAO implements RouteDAO {
     public Response updateRoute( RoutesDTO routesDTO ) throws Exception {
 
         // Check for valid parameters.
-        if (checkValidRouteDTOValues(routesDTO)) {
+        if (RouteService.checkValidRouteDTOValues(routesDTO)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Input").build();
         }
 
@@ -191,12 +188,11 @@ public class BusRoutesDAO implements RouteDAO {
              PreparedStatement statement = conn.prepareStatement(update_route_query);) {
 
             // Check if a route is assigned with a schedule. If so then the route cannot be updated.
-            if (isRouteAssignedToSchedule(conn, routesDTO.getRouteId())) {
+            if (RouteService.isRouteAssignedToSchedule(conn, routesDTO.getRouteId())) {
                 return Response.status(Response.Status.CONFLICT).entity("Cannot update route. This route is assigned to an existing schedule.").build();
             }
 
             // Check if the route exists.
-
             checkRouteExistStatement.setInt(1, routesDTO.getRouteId());
 
             ResultSet rs = checkRouteExistStatement.executeQuery();
@@ -220,45 +216,4 @@ public class BusRoutesDAO implements RouteDAO {
     }
 
 
-    /**
-     * Validates if a route is assigned to a schedule
-     *
-     * @param conn    DB connection
-     * @param routeId route ID to check if it is assigned with a schedule
-     * @return true if route is assigned with a schedule else false
-     * @throws Exception if any error
-     */
-    private boolean isRouteAssignedToSchedule( Connection conn, int routeId ) throws Exception {
-        try (PreparedStatement checkRouteScheduleExistStatement = conn.prepareStatement(check_route_schedule_exist_query);) {
-            checkRouteScheduleExistStatement.setInt(1, routeId);
-            try (ResultSet routeScheduleRs = checkRouteScheduleExistStatement.executeQuery()) {
-                return routeScheduleRs.next();
-            }
-        }
-    }
-
-
-    /**
-     * Validates the route DTO for nulls, empty values, and logical errors.
-     *
-     * @param routesDTO DTO to validate
-     * @return true if invalid; false otherwise
-     */
-
-    private boolean checkValidRouteDTOValues( RoutesDTO routesDTO ) {
-
-        // NULL check
-        if (routesDTO == null) {
-            return true;
-        }
-
-
-        // RouteDTO VALIDATION
-        String source = routesDTO.getSource();
-        String destination = routesDTO.getDestination();
-        Integer distanceKm = routesDTO.getDistanceKm();
-        String estimatedTime = routesDTO.getEstimatedTime();
-
-        return source == null || destination == null || estimatedTime == null || source.isEmpty() || destination.isEmpty() || estimatedTime.isEmpty() || distanceKm == null || distanceKm < 0 || source.equals(destination);
-    }
 }

@@ -24,6 +24,16 @@ public class CitiesService {
             """, CITY_LOCATIONS);
 
 
+    // SQL to delete all the locations associated with a city
+    private static final String delete_locations_associated_with_city = String.format("""
+            DELETE FROM %s
+            WHERE location_id IN (
+                SELECT location_id
+                FROM %s
+                WHERE city_id = ?
+            );
+            """, LOCATIONS, CITY_LOCATIONS);
+
     /**
      * Function to check with the city ID if a city exists or not.
      * @param cityId ID of the city
@@ -72,16 +82,6 @@ public class CitiesService {
         }
         return false;
     }
-
-
-    private static final String delete_locations_associated_with_city = String.format("""
-            DELETE FROM %s
-            WHERE location_id IN (
-                SELECT location_id
-                FROM %s
-                WHERE city_id = ?
-            );
-            """, LOCATIONS, CITY_LOCATIONS);
 
     /**
      * Two operations:

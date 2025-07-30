@@ -8,8 +8,7 @@ import jakarta.ws.rs.ext.Provider;
 public class GenericExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse( Exception exception ) {
-//        System.out.println(exception.getMessage());
-        exception.printStackTrace();
+        System.out.println(exception.getMessage());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Something went wrong.").build();
     }
 }

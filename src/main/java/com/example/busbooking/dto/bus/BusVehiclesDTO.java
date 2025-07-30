@@ -111,14 +111,6 @@ public class BusVehiclesDTO extends VehiclesDTO {
         this.busId = busId;
     }
 
-    public BusVehiclesDTO( String busType, int busId, List<SeatGridCount> seatGridCount, List<SeatDetails> seatDetails, int totalColumns ) {
-        this.busType = busType;
-        this.busId = busId;
-        this.seatGridCount = seatGridCount;
-        this.seatDetails = seatDetails;
-        this.totalColumns = totalColumns;
-    }
-
 
 
     public List<SeatGridCount> getSeatGridCount() {

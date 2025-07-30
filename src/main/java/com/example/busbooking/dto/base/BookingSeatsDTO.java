@@ -18,12 +18,6 @@ public class BookingSeatsDTO {
         private String passengerName;
         private Integer passengerAge;
 
-        public PassengerDetailsDTO (String passengerName, Integer passengerAge, int scheduledSeatId) {
-            this.passengerAge = passengerAge;
-            this.passengerName = passengerName;
-            this.scheduledSeatId = scheduledSeatId;
-        }
-
         public PassengerDetailsDTO () {}
         public int getScheduledSeatId() {
             return scheduledSeatId;
@@ -49,14 +43,6 @@ public class BookingSeatsDTO {
             this.passengerAge = passengerAge;
         }
 
-    }
-    public BookingSeatsDTO( int userId, int scheduleId, int payableAmount, int boardingPointId, int droppingPointId, List<PassengerDetailsDTO> passengerDetails ) {
-        this.userId = userId;
-        this.scheduleId = scheduleId;
-        this.payableAmount = payableAmount;
-        this.boardingPointId = boardingPointId;
-        this.droppingPointId = droppingPointId;
-        this.passengerDetails = passengerDetails;
     }
 
     public int getUserId() {

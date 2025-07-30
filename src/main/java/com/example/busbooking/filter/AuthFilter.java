@@ -20,9 +20,10 @@ public class AuthFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
-
+        // Get path of the request
         String path = requestContext.getUriInfo().getPath();
 
+        // If the path is login or signup, then no authentication required.
         if (path.contains("login") || path.contains("signup")) {
             return;
         }
@@ -55,28 +56,40 @@ public class AuthFilter implements ContainerRequestFilter {
             return;
         }
 
+        // Get cookies from the browser
         Map<String, Cookie> cookies = requestContext.getCookies();
         if (cookies != null && cookies.containsKey("token")) {
+            // Extracting the token
             token = cookies.get("token").getValue();
         }
+
+        // Abort if the token is null
         if (token == null) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Missing token").build());
             return;
         }
+
+        // Verify token
         try {
             JwtUtil.verifyToken(token);
         } catch (Exception e) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Token has expired").build());
             return;
         }
+
+        // Unique ID of the token
         String jti = JwtUtil.getJtiFromToken(token);
 
+        // Validates if the jti is blacklisted or not. If the jti is found in the blacklist then the token is expired and UNAUTHORIZED response is sent back.
         if (BlackListService.isBlacklisted(jti)) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Token is invalidated").build());
         }
 
         try {
+            // JWT decoding
             DecodedJWT decodedJWT = JwtUtil.verifyToken(token);
+
+            // Extracting username, user ID and role ID from the claims
             int userId = decodedJWT.getClaim("userId").asInt();
             int roleId = decodedJWT.getClaim("roleId").asInt();
             String username = decodedJWT.getSubject();
@@ -84,6 +97,7 @@ public class AuthFilter implements ContainerRequestFilter {
             requestContext.setProperty("userId", userId);
             requestContext.setProperty("roleId", roleId);
             requestContext.setProperty("username", username);
+
         } catch (Exception e) {
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("Invalid token").build());
         }

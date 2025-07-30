@@ -2,11 +2,10 @@ package com.example.busbooking.dao.bus;
 
 import com.example.busbooking.dao.base.VehicleDAO;
 import com.example.busbooking.db.DBConnection;
-import com.example.busbooking.db.DBConstants;
 import com.example.busbooking.dto.bus.BusSearchRequestDTO;
 import com.example.busbooking.dto.bus.BusSearchResponseDTO;
 import com.example.busbooking.dto.bus.BusVehiclesDTO;
-import com.example.busbooking.service.AddBusService;
+import com.example.busbooking.service.BusService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import org.postgresql.util.PSQLException;
@@ -57,7 +56,7 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
     private static final String delete_bus_query = String.format("delete from %s where bus_id = ?", BUSES);
 
     // SQL to update a bus
-    private static final String update_bus_query = String.format("update %s set bus_number = ?, bus_type = ?, total_seats = ?, operator_name = ? where bus_id = ?", BUSES);
+    private static final String update_bus_query = String.format("update %s set bus_number = ?, bus_type = ?, operator_name = ? where bus_id = ?", BUSES);
 
     // SQL to check if a bus exist.
     private static final String check_bus_exist = String.format("select bus_id from %s where bus_id = ?", BUSES);
@@ -115,12 +114,8 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
                             arrivalTime, price, operatorName, distanceKm, estimatedTime));
 
                 }
-            } catch (Exception e) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Something went wrong.").build();
             }
 
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Something went wrong.").build();
         }
         return Response.ok(searchResponseList).build();
     }
@@ -198,7 +193,7 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
             // before deleting this bus.
             if (FOREIGN_KEY_VIOLATION.equals(e.getSQLState())) {
                 return Response.status(Response.Status.FORBIDDEN)
-                        .entity("This bus has been assigned a schedule. Please access the schedule section to modify it.")
+                        .entity("This bus is currently assigned to an schedule and cannot be deleted to maintain data integrity.")
                         .build();
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -224,7 +219,6 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
              PreparedStatement statement = conn.prepareStatement(update_bus_query);) {
 
             // Check if the bus exists.
-
             checkBusExistStatement.setInt(1, busVehicleDTO.getBusId());
 
             try (ResultSet rs = checkBusExistStatement.executeQuery()) {
@@ -235,13 +229,16 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
                 }
             }
 
+            if (BusService.checkBusAssignedWithSchedule(busVehicleDTO.getBusId(), conn)) {
+                return Response.status(Response.Status.CONFLICT).entity("This bus is already assigned with a schedule. So cannot be modified.").build();
+            }
+
             // Replace the new bus details over the old bus details.
 
             statement.setString(1, busVehicleDTO.getVehicleNumber());
             statement.setString(2, busVehicleDTO.getBusType());
-            statement.setInt(3, busVehicleDTO.getTotalSeats());
-            statement.setString(4, busVehicleDTO.getOperatorName());
-            statement.setInt(5, busVehicleDTO.getBusId());
+            statement.setString(3, busVehicleDTO.getOperatorName());
+            statement.setInt(4, busVehicleDTO.getBusId());
             statement.executeUpdate();
 
         } catch (SQLException exception) {
@@ -276,13 +273,13 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
             conn.setAutoCommit(false);
 
             // add a new bus in the buses table and returns the generated bus id;
-            int busId = AddBusService.addNewBus(conn, busVehicleDTO);
+            int busId = BusService.addNewBus(conn, busVehicleDTO);
 
             // this stores the details of no of rows for each column in the bus;
-            AddBusService.addSeatGridColumns(conn, busVehicleDTO, busId);
+            BusService.addSeatGridColumns(conn, busVehicleDTO, busId);
 
             // adds all the seats for the bus with seat type received from the user.
-            AddBusService.addSeats(conn, busVehicleDTO, busId);
+            BusService.addSeats(conn, busVehicleDTO, busId);
 
             conn.commit();
 
@@ -310,9 +307,6 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
 
         return Response.ok("Bus added.").build();
     }
-
-
-
 
 
 }

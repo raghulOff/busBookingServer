@@ -18,12 +18,6 @@ public class SchedulesDTO {
     public SchedulesDTO() {
     }
 
-    public SchedulesDTO( int scheduleId, String departureTime, String arrivalTime, double price ) {
-        this.scheduleId = scheduleId;
-        this.departureTime = departureTime;
-        this.arrivalTime = arrivalTime;
-        this.price = price;
-    }
 
     public SchedulesDTO( int scheduleId, int routeId, int busId, String departureTime, String arrivalTime, double price, String journeyDate, Integer status_id ) {
         this.routeId = routeId;

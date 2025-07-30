@@ -63,7 +63,7 @@ public class SchedulesController {
     @Path("/{scheduleId}/details")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
-    public Response getScheduleDetails( @PathParam("scheduleId") int scheduleId ) {
+    public Response getScheduleDetails( @PathParam("scheduleId") int scheduleId ) throws Exception {
         return scheduleDAO.getScheduleDetails(scheduleId);
     }
 

@@ -34,7 +34,7 @@ public interface ScheduleDAO {
      * @param scheduleId The unique ID of the schedule.
      * @return A Response with the schedule details or an error if not found.
      */
-    Response getScheduleDetails(int scheduleId);
+    Response getScheduleDetails(int scheduleId) throws Exception;
 
     /**
      * Deletes an existing schedule based on the provided schedule ID.

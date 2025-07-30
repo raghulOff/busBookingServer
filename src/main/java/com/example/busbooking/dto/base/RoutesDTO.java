@@ -69,13 +69,6 @@ public class RoutesDTO {
         this.routeId = routeId;
     }
 
-    public RoutesDTO( String source, String destination, int distanceKm, String estimatedTime ) {
-        this.source = source;
-        this.destination = destination;
-        this.distanceKm = distanceKm;
-        this.estimatedTime = estimatedTime;
-    }
-
     public RoutesDTO( int routeId, String source, String destination, int distanceKm, String estimatedTime, int sourceCityId, int destinationCityId ) {
         this.source = source;
         this.destination = destination;
