@@ -6,7 +6,6 @@ import java.util.Map;
 
 
 public class BookingsDTO {
-
     private String journeyDate;
     private double totalAmount;
     private String operatorName;

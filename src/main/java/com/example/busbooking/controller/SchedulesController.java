@@ -1,10 +1,13 @@
 package com.example.busbooking.controller;
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
-import com.example.busbooking.dao.bus.BusSchedulesDAO;
+import com.example.busbooking.annotation.PermissionsAllowed;
+
 import com.example.busbooking.dao.base.ScheduleDAO;
+import com.example.busbooking.dao.bus.BusSchedulesDAO;
 import com.example.busbooking.dto.base.SchedulesDTO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.Role;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -12,9 +15,10 @@ import jakarta.ws.rs.core.Response;
 /**
  * Controller responsible for handling operations related to bus schedules.
  * Includes endpoints to create, read, update, and delete schedule entries.
-
- * Access is controlled using {@link RolesAllowedCustom}, allowing certain roles to
- * access or modify the data. */
+ * <p>
+ * Access is controlled using {@link PermissionsAllowed}, allowing certain roles to
+ * access or modify the data.
+ */
 
 @Path("/schedule")
 public class SchedulesController {
@@ -31,7 +35,8 @@ public class SchedulesController {
     @GET
     @Path("/get-schedules")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.GET_BUS_SCHEDULES})
+
     public Response getSchedules() throws Exception {
         return scheduleDAO.getSchedules();
     }
@@ -47,8 +52,9 @@ public class SchedulesController {
     @Path("/add-schedule")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
-    public Response addSchedule( SchedulesDTO schedulesDto ) throws Exception {
+    @PermissionsAllowed({Permission.ADD_BUS_SCHEDULE})
+
+    public Response addSchedule( @Valid SchedulesDTO schedulesDto ) throws Exception {
         return scheduleDAO.addNewSchedule(schedulesDto);
     }
 
@@ -62,7 +68,8 @@ public class SchedulesController {
     @GET
     @Path("/{scheduleId}/details")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
+    @PermissionsAllowed({Permission.GET_BUS_SCHEDULE_DETAILS})
+
     public Response getScheduleDetails( @PathParam("scheduleId") int scheduleId ) throws Exception {
         return scheduleDAO.getScheduleDetails(scheduleId);
     }
@@ -78,11 +85,11 @@ public class SchedulesController {
     @PUT
     @Path("/{scheduleId}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN})
+    @PermissionsAllowed({Permission.CANCEL_BUS_SCHEDULE})
+
     public Response cancelSchedule( @PathParam("scheduleId") int scheduleId ) throws Exception {
         return scheduleDAO.cancelSchedule(scheduleId);
     }
-
 
 
     /**
@@ -96,8 +103,9 @@ public class SchedulesController {
     @Path("/update")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN})
-    public Response updateSchedule( SchedulesDTO schedulesDTO ) throws Exception {
+    @PermissionsAllowed({Permission.UPDATE_BUS_SCHEDULE})
+
+    public Response updateSchedule( @Valid SchedulesDTO schedulesDTO ) throws Exception {
         return scheduleDAO.updateSchedule(schedulesDTO);
     }
 

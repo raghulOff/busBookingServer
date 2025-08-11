@@ -1,38 +1,46 @@
 package com.example.busbooking.dto.base;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 
 public class BookingSeatsDTO {
-    private int userId;
-    private int scheduleId;
-    private int payableAmount;
-    private int boardingPointId;
-    private int droppingPointId;
+
+    @NotNull(message = "User ID is required.")
+    private Integer userId;
+    @NotNull(message = "Schedule ID is required.")
+    private Integer scheduleId;
+    @NotNull(message = "Payable Amount is required.")
+    private Integer payableAmount;
+    @NotNull(message = "Boarding point ID is required.")
+    private Integer boardingPointId;
+    @NotNull(message = "Dropping point ID is required.")
+    private Integer droppingPointId;
+    @NotNull(message = "Passenger details are required.")
+    @Valid
     private List<PassengerDetailsDTO> passengerDetails;
 
-    public BookingSeatsDTO() {}
 
 
     public static class PassengerDetailsDTO {
-        private int scheduledSeatId;
+
+        @NotNull(message = "Scheduled seat ID required")
+        private Integer scheduledSeatId;
+
+        @NotNull(message = "Passenger name is required")
+        @NotEmpty(message = "Passenger name shouldn't be empty")
         private String passengerName;
+
+        @NotNull(message = "Passenger age is required")
+        @Min(0)
+        @Max(100)
         private Integer passengerAge;
 
-        public PassengerDetailsDTO () {}
-        public int getScheduledSeatId() {
-            return scheduledSeatId;
-        }
-
-        public void setScheduledSeatId( int scheduledSeatId ) {
-            this.scheduledSeatId = scheduledSeatId;
-        }
-
-        public String getPassengerName() {
-            return passengerName;
-        }
-
-        public void setPassengerName( String passengerName ) {
-            this.passengerName = passengerName;
+        public PassengerDetailsDTO() {
         }
 
         public Integer getPassengerAge() {
@@ -43,45 +51,65 @@ public class BookingSeatsDTO {
             this.passengerAge = passengerAge;
         }
 
+        public String getPassengerName() {
+            return passengerName;
+        }
+
+        public void setPassengerName( String passengerName ) {
+            this.passengerName = passengerName;
+        }
+
+        public Integer getScheduledSeatId() {
+            return scheduledSeatId;
+        }
+
+        public void setScheduledSeatId( Integer scheduledSeatId ) {
+            this.scheduledSeatId = scheduledSeatId;
+        }
+
+
     }
 
-    public int getUserId() {
+    public BookingSeatsDTO() {
+    }
+
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId( int userId ) {
+    public void setUserId( Integer userId ) {
         this.userId = userId;
     }
 
-    public int getScheduleId() {
+    public Integer getScheduleId() {
         return scheduleId;
     }
 
-    public void setScheduleId( int scheduleId ) {
+    public void setScheduleId( Integer scheduleId ) {
         this.scheduleId = scheduleId;
     }
 
-    public int getPayableAmount() {
+    public Integer getPayableAmount() {
         return payableAmount;
     }
 
-    public void setPayableAmount( int payableAmount ) {
+    public void setPayableAmount( Integer payableAmount ) {
         this.payableAmount = payableAmount;
     }
 
-    public int getBoardingPointId() {
+    public Integer getBoardingPointId() {
         return boardingPointId;
     }
 
-    public void setBoardingPointId( int boardingPointId ) {
+    public void setBoardingPointId( Integer boardingPointId ) {
         this.boardingPointId = boardingPointId;
     }
 
-    public int getDroppingPointId() {
+    public Integer getDroppingPointId() {
         return droppingPointId;
     }
 
-    public void setDroppingPointId( int droppingPointId ) {
+    public void setDroppingPointId( Integer droppingPointId ) {
         this.droppingPointId = droppingPointId;
     }
 
@@ -92,5 +120,6 @@ public class BookingSeatsDTO {
     public void setPassengerDetails( List<PassengerDetailsDTO> passengerDetails ) {
         this.passengerDetails = passengerDetails;
     }
+
 
 }

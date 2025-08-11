@@ -1,11 +1,13 @@
 package com.example.busbooking.controller;
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
+import com.example.busbooking.annotation.PermissionsAllowed;
 import com.example.busbooking.dao.user.UserDAO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.Role;
 import com.example.busbooking.model.User;
 import com.example.busbooking.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -15,7 +17,7 @@ import jakarta.ws.rs.core.Response;
 /**
  * REST controller responsible for authentication, role-based authorization,
 
- * Endpoints are protected using the {@link RolesAllowedCustom} annotation to
+ * Endpoints are protected using the {@link PermissionsAllowed} annotation to
  * ensure only users with specific roles can access them.
  */
 
@@ -36,7 +38,7 @@ public class AuthController {
     @Path("/signup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response signup( User user ) {
+    public Response signup(@Valid User user ) {
         // assigning role as USER
         user.setRole(Role.USER);
         return AuthService.validateAndRegisterUser(user);
@@ -53,8 +55,8 @@ public class AuthController {
     @Path("/add-user")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN})
-    public Response addUser( User user ) {
+    @PermissionsAllowed({Permission.ADD_USER})
+    public Response addUser(@Valid User user ) {
         return AuthService.validateAndRegisterUser(user);
     }
 
@@ -69,7 +71,7 @@ public class AuthController {
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login( User userInput ) throws Exception {
+    public Response login(@Valid User userInput ) throws Exception {
         return AuthService.loginVerification(userInput);
     }
 
@@ -81,7 +83,7 @@ public class AuthController {
      */
     @GET
     @Path("/home")
-    @RolesAllowedCustom({Role.USER})
+    @PermissionsAllowed({Permission.VIEW_HOME_PAGE})
     @Produces(MediaType.APPLICATION_JSON)
     public Response homeCheck() {
         String username = (String) request.getAttribute("username");
@@ -96,7 +98,7 @@ public class AuthController {
      */
     @GET
     @Path("/book-bus")
-    @RolesAllowedCustom({Role.USER})
+    @PermissionsAllowed({Permission.VIEW_BOOKING_PAGE})
     @Produces(MediaType.APPLICATION_JSON)
     public Response bookPageCheck() {
         String username = (String) request.getAttribute("username");
@@ -113,7 +115,7 @@ public class AuthController {
      */
     @GET
     @Path("/admin-home")
-    @RolesAllowedCustom({Role.ADMIN})
+    @PermissionsAllowed({Permission.VIEW_ADMIN_HOME_PAGE})
     @Produces(MediaType.APPLICATION_JSON)
     public Response adminCheck() {
 
@@ -130,7 +132,7 @@ public class AuthController {
      */
     @GET
     @Path("/dev-home")
-    @RolesAllowedCustom({Role.DEVELOPER})
+    @PermissionsAllowed({Permission.VIEW_DEVELOPER_HOME_PAGE})
     @Produces(MediaType.APPLICATION_JSON)
     public Response devCheck() {
         String username = (String) request.getAttribute("username");
@@ -148,7 +150,7 @@ public class AuthController {
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.USER, Role.DEVELOPER, Role.ADMIN})
+    @PermissionsAllowed({Permission.USER_LOGOUT})
     public Response logout( @CookieParam("token") String token ) {
         return AuthService.logoutUser(token);
     }
@@ -162,7 +164,7 @@ public class AuthController {
     @GET
     @Path("/bookings")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.USER})
+    @PermissionsAllowed({Permission.GET_USER_BOOKING_HISTORY})
     public Response bookingHistoryCheck() {
         String username = (String) request.getAttribute("username");
         return AuthService.extractUserDetails(username, "Customer can see this.");
@@ -178,7 +180,7 @@ public class AuthController {
     @GET
     @Path("/get-roles")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN})
+    @PermissionsAllowed({Permission.GET_ROLES})
     public Response getRoles() {
         return UserDAO.getRoles();
     }

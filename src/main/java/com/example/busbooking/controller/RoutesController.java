@@ -1,10 +1,13 @@
 package com.example.busbooking.controller;
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
+import com.example.busbooking.annotation.PermissionsAllowed;
+
 import com.example.busbooking.dao.bus.BusRoutesDAO;
 import com.example.busbooking.dao.base.RouteDAO;
 import com.example.busbooking.dto.base.RoutesDTO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.Role;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -31,7 +34,8 @@ public class RoutesController {
     @GET
     @Path("/get-routes")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.GET_BUS_ROUTES})
+
     public Response getRoutes() throws Exception {
         return routeDAO.getRoutes();
     }
@@ -48,8 +52,9 @@ public class RoutesController {
     @Path("/add-route")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
-    public Response addRoute( RoutesDTO routesDto ) throws Exception {
+    @PermissionsAllowed({Permission.ADD_BUS_ROUTE})
+
+    public Response addRoute(@Valid RoutesDTO routesDto ) throws Exception {
         return routeDAO.addNewRoute(routesDto);
     }
 
@@ -64,7 +69,8 @@ public class RoutesController {
     @DELETE
     @Path("/delete-route/{routeId}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.DELETE_BUS_ROUTE})
+
     public Response deleteRoute( @PathParam("routeId") int routeId ) throws Exception {
         return routeDAO.deleteRoute(routeId);
     }
@@ -80,8 +86,9 @@ public class RoutesController {
     @PUT
     @Path("/update-route")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
-    public Response updateRoute( RoutesDTO routesDTO ) throws Exception {
+    @PermissionsAllowed({Permission.UPDATE_BUS_ROUTE})
+
+    public Response updateRoute(@Valid RoutesDTO routesDTO ) throws Exception {
         return routeDAO.updateRoute(routesDTO);
     }
 }

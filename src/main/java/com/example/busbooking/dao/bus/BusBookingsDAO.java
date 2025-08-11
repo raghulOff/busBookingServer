@@ -5,14 +5,14 @@ import com.example.busbooking.db.DBConnection;
 import static com.example.busbooking.db.DBConstants.*;
 import com.example.busbooking.dto.base.BookingSeatsDTO;
 import com.example.busbooking.dto.base.BookingsDTO;
-import com.example.busbooking.model.BookingStatus;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.BookingStatus;
+import com.example.busbooking.enums.Role;
+import com.example.busbooking.registry.BookingStatusRegistry;
 import com.example.busbooking.service.BookingsService;
 import com.example.busbooking.service.ScheduleService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 
-import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -212,17 +212,12 @@ public class BusBookingsDAO implements BookingsDAO {
             // traversing through all the passenger details consumed from the client
             for (BookingSeatsDTO.PassengerDetailsDTO passengerDetail : bookingSeatsDTO.getPassengerDetails()) {
 
-                // checks if the passenger details are valid;
-                if (BookingsService.isValidPassengerDetails(passengerDetail)) {
-                    return Response.status(Response.Status.BAD_REQUEST).entity("Invalid passenger details.").build();
-                }
 
                 // check if there is any mismatch in schedule ID from user and schedule ID of scheduledSeatId;
                 Integer scheduleId = BookingsService.getScheduleIdFromScheduledSeatId(passengerDetail.getScheduledSeatId(), conn);
-                if (scheduleId == null || scheduleId != bookingSeatsDTO.getScheduleId()) {
+                if (scheduleId == null || !scheduleId.equals(bookingSeatsDTO.getScheduleId())) {
                     return Response.status(Response.Status.BAD_REQUEST).entity("Mismatch with schedule ID and scheduled seat ID.").build();
                 }
-
 
                 // checks if the seat is already booked or not
                 if (BookingsService.checkSeatStatus(passengerDetail.getScheduledSeatId(), conn)) {
@@ -244,12 +239,11 @@ public class BusBookingsDAO implements BookingsDAO {
             return Response.ok("Seats are booked.").build();
 
         } catch (Exception e) {
-
+            e.printStackTrace();
             System.err.println(e.getMessage());
             // roll back connection
             DBConnection.rollbackConnection(conn);
             throw e;
-//            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Cannot book seats. Something went wrong.").build();
         } finally {
             // roll back connection
             DBConnection.closeConnection(conn);
@@ -282,13 +276,12 @@ public class BusBookingsDAO implements BookingsDAO {
 
         Connection conn = null;
         try {
-
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
             // Check if the seat is already cancelled or not.
             if (!BookingsService.checkSeatStatus(scheduledSeatId, conn)) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Already cancelled. Invalid request. ").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("Already cancelled. Invalid request.").build();
 
             }
 
@@ -301,9 +294,9 @@ public class BusBookingsDAO implements BookingsDAO {
             // Determine by whom the ticket is cancelled
             int bookingStatus = 0;
             if (loggedInRoleId != Role.USER.getId()) {
-                bookingStatus = BookingStatus.CANCELLED_BY_ADMIN.getId();
+                bookingStatus = BookingStatusRegistry.getByCode(BookingStatus.CANCELLED_BY_ADMIN.name()).getStatusId();
             } else {
-                bookingStatus = BookingStatus.CANCELLED_BY_USER.getId();
+                bookingStatus = BookingStatusRegistry.getByCode(BookingStatus.CANCELLED_BY_USER.name()).getStatusId();
             }
 
             // BOOKING_SEATS -> The status is set to false which denotes the seat is cancelled for the booking ID.

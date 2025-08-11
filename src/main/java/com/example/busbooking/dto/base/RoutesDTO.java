@@ -1,37 +1,66 @@
 package com.example.busbooking.dto.base;
 
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 public class RoutesDTO {
+
     private String source;
     private String destination;
+
+    @Min(1)
+    @Max(10000)
+    @NotNull (message = "distanceKm cannot be null")
     private Integer distanceKm;
+
+    @NotNull(message = "Estimated Time is required")
+    @NotEmpty(message = "Estimated Time shouldn't be empty")
     private String estimatedTime;
+
     private int routeId;
-    private int sourceCityId;
-    private int destinationCityId;
+
+    @NotNull(message = "Source city ID is required")
+    private Integer sourceCityId;
+
+    @NotNull(message = "Destination city ID is required")
+    private Integer destinationCityId;
 
     public RoutesDTO() {
     }
 
-    public int getSourceCityId() {
+    public RoutesDTO( int routeId, String source, String destination, Integer distanceKm, String estimatedTime, Integer sourceCityId, Integer destinationCityId ) {
+        this.source = source;
+        this.destination = destination;
+        this.distanceKm = distanceKm;
+        this.estimatedTime = estimatedTime;
+        this.routeId = routeId;
+        this.sourceCityId = sourceCityId;
+        this.destinationCityId = destinationCityId;
+
+    }
+
+    public Integer getSourceCityId() {
         return sourceCityId;
     }
 
-    public void setSourceCityId( int sourceCityId ) {
+    public void setSourceCityId( Integer sourceCityId ) {
         this.sourceCityId = sourceCityId;
     }
 
-    public int getDestinationCityId() {
+    public Integer getDestinationCityId() {
         return destinationCityId;
     }
 
-    public void setDestinationCityId( int destinationCityId ) {
+    public void setDestinationCityId( Integer destinationCityId ) {
         this.destinationCityId = destinationCityId;
     }
+
     public String getSource() {
         return source;
     }
-
 
     public void setSource( String source ) {
         this.source = source;
@@ -67,16 +96,5 @@ public class RoutesDTO {
 
     public void setRouteId( int routeId ) {
         this.routeId = routeId;
-    }
-
-    public RoutesDTO( int routeId, String source, String destination, int distanceKm, String estimatedTime, int sourceCityId, int destinationCityId ) {
-        this.source = source;
-        this.destination = destination;
-        this.distanceKm = distanceKm;
-        this.estimatedTime = estimatedTime;
-        this.routeId = routeId;
-        this.sourceCityId = sourceCityId;
-        this.destinationCityId = destinationCityId;
-
     }
 }

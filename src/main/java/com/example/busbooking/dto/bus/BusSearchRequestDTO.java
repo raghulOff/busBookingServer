@@ -1,37 +1,42 @@
 package com.example.busbooking.dto.bus;
 
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 public class BusSearchRequestDTO {
-    private String from;
-    private String to;
+    @NotNull (message = "DOJ is required")
+    @NotEmpty (message = "DOJ cannot be empty")
     private String doj;
+
+    @NotNull (message = "From city ID is required")
+    private Integer fromCityId;
+
+    @NotNull (message = "To city ID is required")
+    private Integer toCityId;
+
+    public Integer getFromCityId() {
+        return fromCityId;
+    }
+
+    public void setFromCityId( Integer fromCityId ) {
+        this.fromCityId = fromCityId;
+    }
+
+    public Integer getToCityId() {
+        return toCityId;
+    }
+
+    public void setToCityId( Integer toCityId ) {
+        this.toCityId = toCityId;
+    }
 
     public String getDoj() {
         return doj;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public String getTo() {
-        return to;
     }
 
     public void setDoj( String doj ) {
         this.doj = doj;
     }
 
-    public void setFrom( String from ) {
-        this.from = from;
-    }
-
-    public void setTo( String to ) {
-        this.to = to;
-    }
-
-    @Override
-    public String toString() {
-        return "from: " + from + " to " + to + " doj " + doj;
-    }
 }

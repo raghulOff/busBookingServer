@@ -1,18 +1,37 @@
 package com.example.busbooking.dto.base;
 
 
+import jakarta.validation.constraints.*;
+
 import java.util.List;
 
 public class SchedulesDTO {
+
+    @NotNull (message = "Route ID is required")
     protected Integer routeId;
+
+    @NotNull (message = "Bus ID is required")
     protected Integer busId;
+
+    @NotBlank(message = "Departure time is required")
     protected String departureTime;
+
+    @NotBlank (message = "Arrival time shouldn't be empty.")
     protected String arrivalTime;
+
+    @NotNull (message = "Price is required")
+    @Min(0) @Max(20000)
     protected Double price;
+
+    @NotBlank (message = "Journey date shouldn't be empty.")
     protected String journeyDate;
+
     protected Integer scheduleId;
+
     protected List<Integer> boardingPointIds;
+
     protected List<Integer> droppingPointIds;
+
     protected Integer statusId;
 
     public SchedulesDTO() {

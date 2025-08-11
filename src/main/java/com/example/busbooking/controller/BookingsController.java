@@ -1,11 +1,13 @@
 package com.example.busbooking.controller;
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
+import com.example.busbooking.annotation.PermissionsAllowed;
 import com.example.busbooking.dao.base.BookingsDAO;
 import com.example.busbooking.dao.bus.BusBookingsDAO;
 import com.example.busbooking.dto.base.BookingSeatsDTO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.Role;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -18,7 +20,7 @@ import java.util.Map;
  * Controller responsible for managing seat bookings,
  * retrieving booking history, and canceling tickets.
 
- * All endpoints are secured using {@link RolesAllowedCustom} based on user roles.
+ * All endpoints are secured using {@link PermissionsAllowed} based on user roles.
  */
 @Path("/bookings")
 public class BookingsController {
@@ -39,8 +41,9 @@ public class BookingsController {
     @Path("/book-seats")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.USER})
-    public Response bookSeats( BookingSeatsDTO bookingSeatsDTO ) throws Exception {
+    @PermissionsAllowed({Permission.BOOK_SEATS})
+
+    public Response bookSeats(@Valid BookingSeatsDTO bookingSeatsDTO ) throws Exception {
         // only the logged-in user is allowed to book seat for their own.
         int loggedInUserId = (int) request.getAttribute("userId");
         return bookingsDAO.bookSeat(bookingSeatsDTO, loggedInUserId);
@@ -58,7 +61,8 @@ public class BookingsController {
     @GET
     @Path("/get-user-bookings/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
+    @PermissionsAllowed({Permission.GET_USER_BOOKING_HISTORY})
+
     public Response getUserBookings( @PathParam("userId") int userId ) throws Exception {
         // Enforce that the logged-in user can only access their own data,
         // unless they are an admin or developer
@@ -78,7 +82,8 @@ public class BookingsController {
     @Path("/cancel-passenger-ticket")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.USER, Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.CANCEL_PASSENGER_TICKET})
+
     public Response cancelPassengerTicket( Map<String, Integer> seat ) throws Exception {
 
         int loggedInUserId = (int) request.getAttribute("userId");

@@ -1,5 +1,5 @@
 
-package com.example.busbooking.model;
+package com.example.busbooking.enums;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 

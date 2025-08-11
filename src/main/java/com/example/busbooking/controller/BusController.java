@@ -1,12 +1,13 @@
 package com.example.busbooking.controller;
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
+import com.example.busbooking.annotation.PermissionsAllowed;
 import com.example.busbooking.dao.bus.BusVehiclesDAO;
 import com.example.busbooking.dao.base.VehicleDAO;
 import com.example.busbooking.dto.bus.BusSearchRequestDTO;
 import com.example.busbooking.dto.bus.BusVehiclesDTO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
 import com.example.busbooking.service.BusService;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -38,8 +39,9 @@ public class BusController {
     @Path("/get-buses")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
-    public Response getBuses( BusSearchRequestDTO busSearch ) throws Exception {
+    @PermissionsAllowed({Permission.SEARCH_BUSES})
+
+    public Response getBuses(@Valid BusSearchRequestDTO busSearch ) throws Exception {
         return BusVehiclesDAO.getAvailableBuses(busSearch);
     }
 
@@ -54,7 +56,8 @@ public class BusController {
     @GET
     @Path("/get-all-buses")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.GET_ALL_BUSES})
+
     public Response getAllBuses() throws Exception {
         return vehicleDAO.getAll();
     }
@@ -70,12 +73,15 @@ public class BusController {
     @DELETE
     @Path("/delete-bus/{busId}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.DELETE_BUS})
+
     public Response deleteBus(@PathParam("busId") int busId) throws Exception {
         return vehicleDAO.delete(busId);
     }
 
 
+
+    // this update bus api is under development
     /**
      * Updates the details of an existing bus.
      *
@@ -87,7 +93,8 @@ public class BusController {
     @Path("/update-bus")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.UPDATE_BUS})
+
     public Response updateBus( BusVehiclesDTO busDTO) throws Exception {
         return vehicleDAO.update(busDTO);
     }
@@ -104,8 +111,9 @@ public class BusController {
     @Path("/add-bus")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
-    public Response addNewBus( BusVehiclesDTO busVehicleDTO ) throws Exception {
+    @PermissionsAllowed({Permission.ADD_NEW_BUS})
+
+    public Response addNewBus(@Valid BusVehiclesDTO busVehicleDTO ) throws Exception {
         return vehicleDAO.addNew(busVehicleDTO);
     }
 
@@ -120,7 +128,8 @@ public class BusController {
     @GET
     @Path("/seat-type")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.GET_SEAT_TYPES})
+
     public Response getSeatTypes () throws Exception {
         return BusService.getSeatTypes();
     }

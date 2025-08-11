@@ -6,6 +6,8 @@ import com.example.busbooking.dao.bus.BusSchedulesDAO;
 import com.example.busbooking.dao.bus.BusVehiclesDAO;
 import com.example.busbooking.dto.base.SchedulesDTO;
 import com.example.busbooking.dto.bus.BusVehiclesDTO;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.RolePermissionMapping;
 import com.example.busbooking.security.PasswordUtil;
 
 import java.sql.Connection;
@@ -16,10 +18,60 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.example.busbooking.enums.Permission.*;
 
 // NOTE: For demo/testing only. Do NOT use hardcoded admin credentials in production!
 
 public class DBInitializer {
+
+
+    public static final List<Permission> adminPermissions = new ArrayList<>(
+            List.of(ADD_USER,
+                    VIEW_ADMIN_HOME_PAGE,
+                    GET_ROLES,
+                    CANCEL_PASSENGER_TICKET,
+                    SEARCH_BUSES,
+                    GET_ALL_BUSES,
+                    DELETE_BUS,
+                    UPDATE_BUS,
+                    ADD_NEW_BUS,
+                    GET_SEAT_TYPES,
+                    GET_ALL_CITIES,
+                    DELETE_CITY,
+                    ADD_NEW_CITY,
+                    GET_SCHEDULE_STOP_POINTS,
+                    GET_CITY_LOCATIONS,
+                    ADD_NEW_LOCATION,
+                    GET_BUS_ROUTES,
+                    ADD_BUS_ROUTE,
+                    DELETE_BUS_ROUTE,
+                    UPDATE_BUS_ROUTE,
+                    GET_BUS_SCHEDULES,
+                    ADD_BUS_SCHEDULE,
+                    GET_BUS_SCHEDULE_DETAILS,
+                    CANCEL_BUS_SCHEDULE,
+                    UPDATE_BUS_SCHEDULE,
+                    USER_LOGOUT
+            )
+    );
+    public static final List<Permission> userPermissions = new ArrayList<>(
+            List.of(
+                    VIEW_HOME_PAGE,
+                    VIEW_BOOKING_PAGE,
+                    VIEW_BOOKINGS_HISTORY,
+                    GET_ROLES,
+                    BOOK_SEATS,
+                    GET_USER_BOOKING_HISTORY,
+                    CANCEL_PASSENGER_TICKET,
+                    SEARCH_BUSES,
+                    GET_SEAT_TYPES,
+                    GET_ALL_CITIES,
+                    GET_SCHEDULE_STOP_POINTS,
+                    GET_BUS_SCHEDULE_DETAILS,
+                    USER_LOGOUT
+            )
+    );
+
 
     public static BusVehiclesDTO createSampleBusVehicleDTO() {
         List<BusVehiclesDTO.SeatGridCount> seatGridCounts = new ArrayList<>();
@@ -152,6 +204,24 @@ public class DBInitializer {
                         );
                     """, DBConstants.USER_ROLES, DBConstants.USERS, DBConstants.ROLES));
 
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        permission_id SERIAL PRIMARY KEY,
+                        permission_name VARCHAR(100) UNIQUE NOT NULL
+                    )
+                    """, DBConstants.PERMISSIONS));
+
+
+            stmt.executeUpdate(String.format("""
+                    CREATE TABLE IF NOT EXISTS %s (
+                        role_id INT REFERENCES %s (role_id),
+                        permission_id INT REFERENCES %s (permission_id),
+                        PRIMARY KEY (role_id, permission_id)
+                    )
+                    """, DBConstants.ROLE_PERMISSIONS, DBConstants.ROLES, DBConstants.PERMISSIONS));
+
+
             stmt.executeUpdate(String.format("""
                         CREATE TABLE IF NOT EXISTS %s (
                             city_id SERIAL PRIMARY KEY,
@@ -224,7 +294,8 @@ public class DBInitializer {
                     INSERT INTO schedule_statuses (status_code) VALUES
                     ('ACTIVE'),
                     ('CANCELLED'),
-                    ('DELAYED') ON CONFLICT DO NOTHING;
+                    ('DELAYED'),
+                    ('COMPLETED') ON CONFLICT DO NOTHING;
                     """);
 
             stmt.executeUpdate(String.format("""
@@ -293,7 +364,6 @@ public class DBInitializer {
                     )
                     """, DBConstants.SCHEDULED_SEATS, DBConstants.SEATS, DBConstants.SCHEDULES, DBConstants.SCHEDULED_SEAT_STATUSES));
 
-//            status BOOLEAN DEFAULT false
 
             stmt.executeUpdate(String.format(
                     """
@@ -311,7 +381,8 @@ public class DBInitializer {
                                     ('BOOKED'),
                                     ('CANCELLED_BY_USER'),
                                     ('CANCELLED_BY_ADMIN'),
-                                    ('REFUNDED') ON CONFLICT DO NOTHING;
+                                    ('REFUNDED'),
+                                    ('TRIP_COMPLETED') ON CONFLICT DO NOTHING;
                                     """, DBConstants.BOOKING_STATUSES
                     )
             );
@@ -327,7 +398,6 @@ public class DBInitializer {
                         status_id INT REFERENCES booking_statuses(status_id) DEFAULT 1
                     );
                     """, DBConstants.BOOKING_SEATS, DBConstants.BOOKINGS, DBConstants.SCHEDULED_SEATS, DBConstants.PASSENGER_DETAILS));
-
 
 
             stmt.executeUpdate(String.format("""
@@ -357,9 +427,11 @@ public class DBInitializer {
                     );
                     """, DBConstants.STOPS, DBConstants.SCHEDULES, DBConstants.LOCATIONS, DBConstants.STOP_TYPE));
 
+            DBInitializer.insertPermissions(stmt);
+
 
             stmt.executeUpdate(String.format("""
-                    INSERT INTO %s (status_code) VALUES ('AVAILABLE'), ('BOOKED'), ('BLOCKED') ON CONFLICT DO NOTHING
+                    INSERT INTO %s (status_code) VALUES ('AVAILABLE'), ('BOOKED'), ('BLOCKED'), ('TRIP_COMPLETED') ON CONFLICT DO NOTHING
                     """, DBConstants.SCHEDULED_SEAT_STATUSES));
 
             stmt.executeUpdate(String.format("""
@@ -373,6 +445,7 @@ public class DBInitializer {
                         ON CONFLICT (role_name) DO NOTHING;
                     """, DBConstants.ROLES));
 
+            DBInitializer.insertRolePermissionMapping(stmt);
 
             String hashedAdminPassword = PasswordUtil.hashPassword("admin123");
 
@@ -448,10 +521,10 @@ public class DBInitializer {
                 SchedulesDTO schedulesDTO = new SchedulesDTO();
                 schedulesDTO.setRouteId(1);
                 schedulesDTO.setBusId(1);
-                schedulesDTO.setDepartureTime("2025-06-06T08:00");
-                schedulesDTO.setArrivalTime("2025-06-06T14:00");
+                schedulesDTO.setDepartureTime("2025-09-06T08:00");
+                schedulesDTO.setArrivalTime("2025-09-06T14:00");
                 schedulesDTO.setPrice(600.00);
-                schedulesDTO.setJourneyDate("2025-06-06");
+                schedulesDTO.setJourneyDate("2025-09-06");
                 schedulesDTO.setBoardingPointIds(Arrays.asList(5, 6));
                 schedulesDTO.setDroppingPointIds(Arrays.asList(3, 4));
                 ScheduleDAO scheduleDAO = new BusSchedulesDAO();
@@ -461,10 +534,10 @@ public class DBInitializer {
 
                 schedulesDTO.setRouteId(2);
                 schedulesDTO.setBusId(2);
-                schedulesDTO.setDepartureTime("2025-06-06T18:00:00");
-                schedulesDTO.setArrivalTime("2025-06-07T05:00:00");
+                schedulesDTO.setDepartureTime("2025-09-06T18:00:00");
+                schedulesDTO.setArrivalTime("2025-09-07T05:00:00");
                 schedulesDTO.setPrice(850.00);
-                schedulesDTO.setJourneyDate("2025-06-06");
+                schedulesDTO.setJourneyDate("2025-09-06");
                 schedulesDTO.setBoardingPointIds(Arrays.asList(1, 2));
                 schedulesDTO.setDroppingPointIds(Arrays.asList(3, 4));
                 scheduleDAO.addNewSchedule(schedulesDTO);
@@ -481,4 +554,36 @@ public class DBInitializer {
             System.err.println("Database initialization failed.");
         }
     }
+
+    public static void insertPermissions( Statement statement ) throws SQLException {
+        for (Permission permission : Permission.values()) {
+            statement.executeUpdate(String.format("""
+                    INSERT INTO %s (permission_name) VALUES ('%s') ON CONFLICT DO NOTHING;
+                    """, DBConstants.PERMISSIONS, permission.name()));
+        }
+    }
+
+    public static void insertRolePermissionMapping( Statement statement ) throws Exception {
+        for (RolePermissionMapping roleMapping : RolePermissionMapping.values()) {
+            String roleName = roleMapping.name(); // e.g., ADMIN, USER
+            List<Permission> permissions = roleMapping.getPermissions();
+
+            for (Permission permission : permissions) {
+                String permissionName = permission.name(); // e.g., ADD_USER
+
+                String insertSQL = String.format(
+                        "INSERT INTO role_permissions (role_id, permission_id) " +
+                                "SELECT r.role_id, p.permission_id FROM roles r, permissions p " +
+                                "WHERE r.role_name = '%s' AND p.permission_name = '%s' " +
+                                "ON CONFLICT DO NOTHING;",
+                        roleName, permissionName
+                );
+
+                statement.executeUpdate(insertSQL);
+            }
+        }
+
+
+    }
+
 }

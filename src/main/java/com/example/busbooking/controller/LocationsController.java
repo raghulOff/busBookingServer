@@ -1,9 +1,10 @@
 package com.example.busbooking.controller;
 
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
+import com.example.busbooking.annotation.PermissionsAllowed;
 import com.example.busbooking.dao.location.LocationsDAO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.Role;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -33,10 +34,12 @@ public class LocationsController {
      * @param boardDropType 1 for boarding points, 0 for dropping points
      * @return a list of location details in JSON format
      * @throws Exception if the schedule ID is invalid or DB access fails
-     */    @GET
+     */
+    @GET
     @Path("/get-schedule-locations/{scheduleId}/{board-drop-type}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
+    @PermissionsAllowed({Permission.GET_SCHEDULE_STOP_POINTS})
+
     public Response getScheduleLocations(@PathParam("scheduleId") int scheduleId, @PathParam("board-drop-type") int boardDropType) throws Exception {
         return locationsDAO.getScheduleLocations(scheduleId, boardDropType);
     }
@@ -54,7 +57,8 @@ public class LocationsController {
     @GET
     @Path("/{cityId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN})
+    @PermissionsAllowed({Permission.GET_CITY_LOCATIONS})
+
     public Response getCityLocations(@PathParam("cityId") int cityId) throws Exception {
         return locationsDAO.getCityLocations(cityId);
     }
@@ -73,7 +77,8 @@ public class LocationsController {
     @Path("/add-location")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN})
+    @PermissionsAllowed({Permission.ADD_NEW_LOCATION})
+
     public Response addNewLocation( Map<String, String> location ) throws Exception {
         return locationsDAO.addNewLocation(location);
     }

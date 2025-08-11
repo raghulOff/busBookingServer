@@ -32,27 +32,4 @@ public class RouteService {
     }
 
 
-    /**
-     * Validates the route DTO for nulls, empty values, and logical errors.
-     *
-     * @param routesDTO DTO to validate
-     * @return true if invalid; false otherwise
-     */
-
-    public static boolean checkValidRouteDTOValues( RoutesDTO routesDTO ) {
-
-        // NULL check
-        if (routesDTO == null) {
-            return true;
-        }
-
-
-        // RouteDTO VALIDATION
-        String source = routesDTO.getSource();
-        String destination = routesDTO.getDestination();
-        Integer distanceKm = routesDTO.getDistanceKm();
-        String estimatedTime = routesDTO.getEstimatedTime();
-
-        return source == null || destination == null || estimatedTime == null || source.isEmpty() || destination.isEmpty() || estimatedTime.isEmpty() || distanceKm == null || distanceKm < 0 || source.equals(destination);
-    }
 }

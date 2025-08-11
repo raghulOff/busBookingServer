@@ -4,7 +4,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.busbooking.dao.user.UserDAO;
 import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.dto.base.UsersDTO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Role;
 import com.example.busbooking.model.User;
 import com.example.busbooking.security.JwtUtil;
 import com.example.busbooking.security.PasswordUtil;
@@ -43,10 +43,10 @@ public class AuthService {
      *         or error response otherwise
      */
 
-    public static Response loginVerification( User userInput) throws Exception {
+    public static Response loginVerification(User userInput) throws Exception {
 
         // Check for valid parameters.
-        if (userInput == null || userInput.getUsername() == null || userInput.getPassword() == null) {
+        if (userInput == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
         }
 
@@ -122,12 +122,7 @@ public class AuthService {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
         }
 
-        String username = user.getUsername();
-        String password = user.getPassword();
-        Role role = user.getRole();
-
-        // Check for valid parameters.
-        if (username==null||password==null||role==null||username.isEmpty()||password.isEmpty()||String.valueOf(role).isEmpty()) {
+        if (String.valueOf(user.getRole()).isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
         }
 
@@ -197,6 +192,7 @@ public class AuthService {
         } catch (JWTVerificationException jwtVerificationException) {
 
             System.out.println(jwtVerificationException.getMessage());
+            jwtVerificationException.printStackTrace();
 
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("JWT Verification Exception").build();
         }

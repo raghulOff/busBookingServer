@@ -1,25 +1,43 @@
 package com.example.busbooking.dto.bus;
 
 import com.example.busbooking.dto.base.VehiclesDTO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-
 public class BusVehiclesDTO extends VehiclesDTO {
 
+    @NotBlank (message = "busType cannot be blank")
     private String busType;
-    private int busId;
+
+    private Integer busId;
+
+    @NotEmpty(message = "seatGridCount cannot be empty")
+    @Valid
     private List<SeatGridCount> seatGridCount;
+
+    @NotEmpty (message = "seatDetails cannot be empty")
+    @Valid
     private List<SeatDetails> seatDetails;
+
+    @NotNull (message = "totalColumns cannot be null")
     private Integer totalColumns;
 
     public static class SeatDetails {
+        @NotNull (message = "row_number cannot be null")
         private Integer row_number;
+        @NotNull (message = "seat_type_id cannot be null")
         private Integer seat_type_id;
+        @NotNull (message = "col_number cannot be null")
         private Integer col_number;
+        @NotBlank (message = "pos cannot be blank")
         private String pos;
 
         public SeatDetails () {}
+
         public SeatDetails( int row_number, int seat_type_id, int col_number, String pos ) {
             this.row_number = row_number;
             this.seat_type_id = seat_type_id;
@@ -64,8 +82,11 @@ public class BusVehiclesDTO extends VehiclesDTO {
 
     public static class SeatGridCount {
 
+        @NotNull (message = "col_number cannot be null")
         private Integer col_number;
+        @NotNull (message = "total_rows cannot be null")
         private Integer total_rows;
+        @NotBlank (message = "pos cannot be blank")
         private String pos;
 
         public SeatGridCount() {}
@@ -137,11 +158,11 @@ public class BusVehiclesDTO extends VehiclesDTO {
         this.totalColumns = totalColumns;
     }
 
-    public int getBusId() {
+    public Integer getBusId() {
         return busId;
     }
 
-    public void setBusId( int busId ) {
+    public void setBusId( Integer busId ) {
         this.busId = busId;
     }
 

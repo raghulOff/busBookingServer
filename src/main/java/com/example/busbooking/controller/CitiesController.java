@@ -1,23 +1,22 @@
 package com.example.busbooking.controller;
 
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
-
+import com.example.busbooking.annotation.PermissionsAllowed;
 import com.example.busbooking.dao.city.CitiesDAO;
 import com.example.busbooking.dto.base.CitiesDTO;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+import com.example.busbooking.enums.Role;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 
-
-
 /**
  * Controller for managing city-related operations such as listing cities,
  * adding new city, and deleting existing cities.
-
- * Access is controlled using {@link RolesAllowedCustom}, allowing certain roles to
+ * <p>
+ * Access is controlled using {@link PermissionsAllowed}, allowing certain roles to
  * access or modify the data.
  */
 
@@ -36,7 +35,8 @@ public class CitiesController {
     @GET
     @Path("/get-cities")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER, Role.USER})
+    @PermissionsAllowed({Permission.GET_ALL_CITIES})
+
     public Response getCities() throws Exception {
         return citiesDAO.getCities();
     }
@@ -51,7 +51,8 @@ public class CitiesController {
     @DELETE
     @Path("/delete-city/{cityId}")
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
+    @PermissionsAllowed({Permission.DELETE_CITY})
+
     public Response deleteCity( @PathParam("cityId") int cityId ) throws Exception {
         return citiesDAO.delete(cityId);
     }
@@ -68,8 +69,9 @@ public class CitiesController {
     @Path("/add-city")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @RolesAllowedCustom({Role.ADMIN, Role.DEVELOPER})
-    public Response addCity( CitiesDTO citiesDto ) throws Exception {
+    @PermissionsAllowed({Permission.ADD_NEW_CITY})
+
+    public Response addCity( @Valid CitiesDTO citiesDto ) throws Exception {
         return citiesDAO.addNewCity(citiesDto);
     }
 }

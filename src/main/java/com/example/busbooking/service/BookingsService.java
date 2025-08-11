@@ -1,11 +1,12 @@
 package com.example.busbooking.service;
 
 import com.example.busbooking.dto.base.BookingSeatsDTO;
-import com.example.busbooking.model.BookingStatus;
-import com.example.busbooking.model.Role;
-import com.example.busbooking.model.ScheduledSeatStatus;
+import com.example.busbooking.enums.BookingStatus;
+import com.example.busbooking.enums.Role;
+import com.example.busbooking.enums.ScheduledSeatStatus;
+import com.example.busbooking.registry.BookingStatusRegistry;
+import com.example.busbooking.registry.ScheduledSeatStatusRegistry;
 import jakarta.ws.rs.BadRequestException;
-
 
 import java.sql.*;
 
@@ -143,7 +144,7 @@ public class BookingsService {
             seatsStatement.setInt(1, bookingId);
             seatsStatement.setInt(2, passengerDetail.getScheduledSeatId());
             seatsStatement.setInt(3, passengerId);
-            seatsStatement.setInt(4, BookingStatus.BOOKED.getId()); // 1 refers to BOOKED state in the BOOKING_STATUSES table.
+            seatsStatement.setInt(4, BookingStatusRegistry.getByCode(BookingStatus.BOOKED.name()).getStatusId()); // 1 refers to BOOKED state in the BOOKING_STATUSES table.
 
             seatsStatement.executeUpdate();
         }
@@ -154,7 +155,7 @@ public class BookingsService {
      * Retrieve the schedule ID from the scheduled seat ID
      *
      * @param scheduledSeatId scheduled seat ID
-     * @param conn DB Connection
+     * @param conn            DB Connection
      * @return schedule ID
      * @throws Exception if any error
      */
@@ -176,7 +177,6 @@ public class BookingsService {
         return schedule_id;
 
     }
-
 
 
     /**
@@ -201,7 +201,7 @@ public class BookingsService {
 
                 if (rs.next()) {
                     int status_id = rs.getInt("status_id");
-                    if (status_id == ScheduledSeatStatus.AVAILABLE.getId()) {
+                    if (status_id == ScheduledSeatStatusRegistry.getByCode(ScheduledSeatStatus.AVAILABLE.name()).getStatusId()) {
                         return false;
                     } else return true;
                 }
@@ -214,30 +214,15 @@ public class BookingsService {
 
 
     /**
-     * Validate passenger details
-     *
-     * @param passengerDetail DTO containing passenger details
-     * @return false if valid, true if invalid
-     */
-    public static boolean isValidPassengerDetails( BookingSeatsDTO.PassengerDetailsDTO passengerDetail ) {
-        Integer passengerAge = passengerDetail.getPassengerAge();
-        String passengerName = passengerDetail.getPassengerName();
-
-        return passengerAge == null || passengerName == null ||
-                passengerName.isEmpty() || (passengerAge <= 0 || passengerAge >= 100);
-    }
-
-
-    /**
      * Change the status of the scheduled seat to booked
      *
      * @param scheduledSeatId scheduled seat ID
-     * @param conn DB Connection
+     * @param conn            DB Connection
      * @throws Exception if any error
      */
     public static void markSeatAsBooked( int scheduledSeatId, Connection conn ) throws Exception {
         try (PreparedStatement updateSeatStatement = conn.prepareStatement(seat_update_query);) {
-            updateSeatStatement.setInt(1, ScheduledSeatStatus.BOOKED.getId()); // 2 refers to booked state.
+            updateSeatStatement.setInt(1, ScheduledSeatStatusRegistry.getByCode(ScheduledSeatStatus.BOOKED.name()).getStatusId()); // 2 refers to booked state.
             updateSeatStatement.setInt(2, scheduledSeatId);
             updateSeatStatement.executeUpdate();
         }
@@ -250,24 +235,27 @@ public class BookingsService {
      * -> The cancellation is by user, then the authenticated user and the user holding the seat ticket is verified.
      *
      * @param scheduledSeatId scheduled seat ID
-     * @param loggedInRoleId role ID of the logged-in user
-     * @param loggedInUserId user ID of the logged-in user
-     * @param conn DB Connection
-     * @return true if the user
+     * @param loggedInRoleId  role ID of the logged-in user
+     * @param loggedInUserId  user ID of the logged-in user
+     * @param conn            DB Connection
+     * @return true if the user can cancel the seat, else false
      * @throws Exception if any error
      */
 
-    public static boolean checkIfUserCanCancelSeat(int scheduledSeatId, int loggedInRoleId, int loggedInUserId, Connection conn) throws Exception {
+    public static boolean checkIfUserCanCancelSeat( int scheduledSeatId, int loggedInRoleId, int loggedInUserId, Connection conn ) throws Exception {
         try (PreparedStatement seatUserStatement = conn.prepareStatement(get_seat_user_query)) {
             seatUserStatement.setInt(1, scheduledSeatId);
             try (ResultSet rs = seatUserStatement.executeQuery()) {
 
-                // if the logged in role id is 3 (USER) then check if the user making the request and authenticated user are same.
-                if (rs.next() && loggedInRoleId == Role.USER.getId()) {
-                    int userId = Integer.parseInt(rs.getString("user_id"));
-                    if (userId == loggedInUserId) {
-                        return true;
-                    }
+                if (rs.next()) {
+                    // If the logged-in user role is USER then user booked the seat and the user logged in using user ID.
+                    if (loggedInRoleId == Role.USER.getId()) {
+                        int userId = Integer.parseInt(rs.getString("user_id"));
+                        if (userId == loggedInUserId) {
+                            return true;
+                        }
+                    } else return true; // For roles other than USER, cancellation is allowed since only authorized roles can access this endpoint via annotations.
+
                 } else {
                     throw new BadRequestException("Scheduled seat is blocked or scheduled seat doesn't exist.");
                 }
@@ -281,12 +269,12 @@ public class BookingsService {
      * Change the status of the scheduled seat to false, which reverts the seat to be available again.
      *
      * @param scheduledSeatId scheduled seat ID
-     * @param conn DB Connection
+     * @param conn            DB Connection
      * @throws Exception if any error occurs
      */
-    public static void markScheduledSeatAsAvailable(int scheduledSeatId, Connection conn) throws Exception {
+    public static void markScheduledSeatAsAvailable( int scheduledSeatId, Connection conn ) throws Exception {
         try (PreparedStatement statement = conn.prepareStatement(update_seats_status_user_id_query)) {
-            statement.setInt(1, ScheduledSeatStatus.AVAILABLE.getId());
+            statement.setInt(1, ScheduledSeatStatusRegistry.getByCode(ScheduledSeatStatus.AVAILABLE.name()).getStatusId());
             statement.setInt(2, scheduledSeatId);
             statement.executeUpdate();
         }
@@ -298,12 +286,12 @@ public class BookingsService {
      * The cancellation can be done by USER, ADMIN etc.
      *
      * @param scheduledSeatId The scheduled seat ID
-     * @param bookingStatus The status of the booking (eg. 1 BOOKED, 2 CANCELLED BY USER, 3 CANCELLED BY ADMIN)
-     * @param conn DB Connection
+     * @param bookingStatus   The status of the booking (eg. 1 BOOKED, 2 CANCELLED BY USER, 3 CANCELLED BY ADMIN)
+     * @param conn            DB Connection
      * @throws Exception if any error
      */
 
-    public static void cancelBookedSeatStatus(int scheduledSeatId, int bookingStatus, Connection conn) throws Exception {
+    public static void cancelBookedSeatStatus( int scheduledSeatId, int bookingStatus, Connection conn ) throws Exception {
         try (PreparedStatement statement = conn.prepareStatement(update_booking_seats_status_query)) {
             statement.setInt(1, bookingStatus);
             statement.setInt(2, scheduledSeatId);

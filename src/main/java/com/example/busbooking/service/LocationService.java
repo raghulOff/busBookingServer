@@ -21,7 +21,7 @@ public class LocationService {
      * @return location ID of the newly generated location
      * @throws Exception if any error occurs.
      */
-    public static Integer addLocationReturnGeneratedID ( String locationName, Connection conn ) throws Exception {
+    public static Integer insertLocationDetails ( String locationName, Connection conn ) throws Exception {
         try (PreparedStatement statement = conn.prepareStatement(add_new_location_query, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, locationName);
             statement.executeUpdate();

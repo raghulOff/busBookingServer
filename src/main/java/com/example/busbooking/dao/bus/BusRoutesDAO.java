@@ -37,23 +37,20 @@ public class BusRoutesDAO implements RouteDAO {
             JOIN %s c1 ON r.source_city_id = c1.city_id
             JOIN %s c2 ON r.destination_city_id = c2.city_id;
             """, ROUTES, CITIES, CITIES);
+
     // SQL to add a new route to DB
     private static final String add_route_query = String.format("""
             insert into %s (source_city_id, destination_city_id, distance_km, estimated_time)
-                            values ((select city_id from %s where city_name = ?),
-            \t\t\t\t(select city_id from %s where city_name = ?),
-            \t\t\t\t?, ?)""", ROUTES, CITIES, CITIES);
+            values (?, ?, ? ,?)
+            """, ROUTES);
+
     // Query to delete an existing route.
     private static final String delete_route_query = String.format("delete from %s where route_id=?", ROUTES);
     // Query to update an existing route.
     private static final String update_route_query = String.format("""
-            UPDATE %s
-            SET
-                source_city_id = (SELECT city_id FROM %s WHERE city_name = ?),
-                destination_city_id = (SELECT city_id FROM %s WHERE city_name = ?),
-                distance_km = ?,
-                estimated_time = ?
-            WHERE route_id = ?;""", ROUTES, CITIES, CITIES);
+            UPDATE %s SET source_city_id = ?, destination_city_id = ?, distance_km = ?, estimated_time = ?
+            WHERE route_id = ?;
+            """, ROUTES, CITIES, CITIES);
     // Check if a route exists with the route ID
     private static final String check_route_exists_query = String.format("select route_id from %s where route_id = ?", ROUTES);
 
@@ -99,15 +96,12 @@ public class BusRoutesDAO implements RouteDAO {
      * @throws SQLException if the insert fails
      */
     public Response addNewRoute( RoutesDTO routesDTO ) throws Exception {
-
-        // Check for valid parameters
-        if (RouteService.checkValidRouteDTOValues(routesDTO)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Input").build();
+        if (routesDTO == null || routesDTO.getSourceCityId().equals(routesDTO.getDestinationCityId())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Input (or) source city and destination city are same").build();
         }
 
-
-        String source = routesDTO.getSource();
-        String destination = routesDTO.getDestination();
+        Integer sourceCityId = routesDTO.getSourceCityId();
+        Integer destinationCityId = routesDTO.getDestinationCityId();
         Integer distanceKm = routesDTO.getDistanceKm();
         String estimatedTime = routesDTO.getEstimatedTime();
 
@@ -115,15 +109,26 @@ public class BusRoutesDAO implements RouteDAO {
              PreparedStatement statement = conn.prepareStatement(add_route_query);
         ) {
 
-            statement.setString(1, source);
-            statement.setString(2, destination);
+            statement.setInt(1, sourceCityId);
+            statement.setInt(2, destinationCityId);
             statement.setInt(3, distanceKm);
             statement.setObject(4, new PGInterval(estimatedTime));
 
             statement.executeUpdate();
 
-        } catch (Exception e) {
-            return Response.status(Response.Status.CONFLICT).entity("Can't create route").build();
+        } catch (SQLException sqlException) {
+
+            System.out.println(sqlException.getMessage());
+
+            if (sqlException.getSQLState().equals(FOREIGN_KEY_VIOLATION)) {
+                return Response.status(Response.Status.CONFLICT).entity("Invalid source or destination given.").build();
+            }
+
+            if (sqlException.getSQLState().equals(UNIQUE_VIOLATION)) {
+                return Response.status(Response.Status.CONFLICT).entity("Route with same details already exist.").build();
+            }
+
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error.").build();
         }
         return Response.status(Response.Status.CREATED).entity("Route added").build();
     }
@@ -160,10 +165,11 @@ public class BusRoutesDAO implements RouteDAO {
             statement.setInt(1, routeId);
             statement.executeUpdate();
 
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("An internal error occurred while deleting the route.")
-                    .build();
+        } catch (SQLException sqlException) {
+            if (sqlException.getSQLState().equals(FOREIGN_KEY_VIOLATION)) {
+                return Response.status(Response.Status.CONFLICT).entity("Cannot delete route. This route is assigned to an existing schedule.").build();
+            }
+
         }
         return Response.ok("Delete success").build();
     }
@@ -178,10 +184,10 @@ public class BusRoutesDAO implements RouteDAO {
 
     public Response updateRoute( RoutesDTO routesDTO ) throws Exception {
 
-        // Check for valid parameters.
-        if (RouteService.checkValidRouteDTOValues(routesDTO)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Input").build();
+        if (routesDTO == null || routesDTO.getSourceCityId().equals(routesDTO.getDestinationCityId())) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Input (or) source city and destination city are same").build();
         }
+
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement checkRouteExistStatement = conn.prepareStatement(check_route_exists_query);
@@ -204,16 +210,24 @@ public class BusRoutesDAO implements RouteDAO {
 
             // UPDATE the route.
 
-            statement.setString(1, routesDTO.getSource());
-            statement.setString(2, routesDTO.getDestination());
+            statement.setInt(1, routesDTO.getSourceCityId());
+            statement.setInt(2, routesDTO.getDestinationCityId());
             statement.setInt(3, routesDTO.getDistanceKm());
             statement.setObject(4, new PGInterval(routesDTO.getEstimatedTime()));
             statement.setInt(5, routesDTO.getRouteId());
 
             statement.executeUpdate();
+        } catch (SQLException sqlException) {
+
+            System.out.println(sqlException.getMessage());
+
+            if (sqlException.getSQLState().equals(FOREIGN_KEY_VIOLATION)) {
+                return Response.status(Response.Status.CONFLICT).entity("Invalid source / destination provided.").build();
+            }
+
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("DB error").build();
         }
         return Response.ok("Update success").build();
     }
-
 
 }

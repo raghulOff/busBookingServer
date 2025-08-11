@@ -4,8 +4,10 @@ import com.example.busbooking.dao.base.ScheduleDAO;
 import com.example.busbooking.db.DBConnection;
 import com.example.busbooking.dto.base.SchedulesDTO;
 import com.example.busbooking.dto.bus.BusSchedulesDetailsDTO;
-import com.example.busbooking.model.BookingStatus;
-import com.example.busbooking.model.ScheduleStatus;
+import com.example.busbooking.enums.BookingStatus;
+import com.example.busbooking.enums.ScheduleStatus;
+import com.example.busbooking.registry.BookingStatusRegistry;
+import com.example.busbooking.registry.ScheduleStatusRegistry;
 import com.example.busbooking.service.ScheduleService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
@@ -15,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.busbooking.db.DBConstants.*;
 
@@ -54,8 +57,6 @@ public class BusSchedulesDAO implements ScheduleDAO {
             """, SEATS, SEAT_GRID_COLUMNS, SEAT_TYPE, SCHEDULED_SEATS, SCHEDULED_SEAT_STATUSES);
 
 
-
-
     // SQL to check if a schedule exist.
     private static final String check_schedule_exist_query = String.format("select * from %s where schedule_id = ?", SCHEDULES);
 
@@ -88,7 +89,6 @@ public class BusSchedulesDAO implements ScheduleDAO {
     private static final String update_schedule_status_query = String.format("""
             UPDATE %s SET status_id = ? WHERE schedule_id = ?
             """, SCHEDULES);
-
 
 
     /**
@@ -136,14 +136,9 @@ public class BusSchedulesDAO implements ScheduleDAO {
     public Response addNewSchedule( SchedulesDTO schedulesDTO ) throws Exception {
 
         // Check for valid schedule values consumed from the client.
-        if (ScheduleService.checkValidScheduleValues(schedulesDTO)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
-        }
-
-        // Null check
-        if (schedulesDTO.getBoardingPointIds() == null || schedulesDTO.getDroppingPointIds() == null
-                || schedulesDTO.getBoardingPointIds().isEmpty() || schedulesDTO.getDroppingPointIds().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
+        Map<String, String> validScheduleValues = ScheduleService.checkValidScheduleValues(schedulesDTO);
+        if (validScheduleValues.get("allowed").equals("false")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(validScheduleValues.get("message")).build();
         }
 
         Connection conn = null;
@@ -153,7 +148,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
             conn.setAutoCommit(false);
 
             // Adding new schedule
-            Integer scheduleId = ScheduleService.createScheduleWithGeneratedId(schedulesDTO, conn);
+            Integer scheduleId = ScheduleService.insertSchedule(schedulesDTO, conn);
 
             // Set the schedule ID.
             schedulesDTO.setScheduleId(scheduleId);
@@ -169,14 +164,20 @@ public class BusSchedulesDAO implements ScheduleDAO {
 
         } catch (BadRequestException badRequestException) {
 
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Date/Time input.").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(badRequestException.getMessage()).build();
 
-        }
+        } catch (SQLException sqlException) {
 
-        catch (Exception e) {
+            // BAD REQUEST response if the schedule already exists.
+            if (sqlException.getSQLState().equals(UNIQUE_VIOLATION)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Schedule already exists.").build();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error.").build();
+
+        } catch (Exception e) {
 
             DBConnection.rollbackConnection(conn);
-//            System.out.println(e.getMessage());
+            System.out.println(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Unable To Add New Schedule").build();
 
         } finally {
@@ -186,7 +187,6 @@ public class BusSchedulesDAO implements ScheduleDAO {
         }
         return Response.ok().entity("Schedule created").build();
     }
-
 
 
     /**
@@ -250,7 +250,6 @@ public class BusSchedulesDAO implements ScheduleDAO {
     }
 
 
-
     /**
      * Cancels a schedule if it exists in the database.
      *
@@ -279,13 +278,13 @@ public class BusSchedulesDAO implements ScheduleDAO {
             ScheduleService.updateScheduledSeatsStatusToBlocked(scheduleId, conn);
 
             // Change the status_id in the bookings_seats table to 3 (cancelled by admin)
-            updateBookingSeatsStatusStatement.setInt(1, BookingStatus.CANCELLED_BY_ADMIN.getId());
+            updateBookingSeatsStatusStatement.setInt(1, BookingStatusRegistry.getByCode(BookingStatus.CANCELLED_BY_ADMIN.name()).getStatusId());
             updateBookingSeatsStatusStatement.setInt(2, scheduleId);
-            updateBookingSeatsStatusStatement.setInt(3, BookingStatus.BOOKED.getId());
+            updateBookingSeatsStatusStatement.setInt(3, BookingStatusRegistry.getByCode(BookingStatus.BOOKED.name()).getStatusId());
             updateBookingSeatsStatusStatement.executeUpdate();
 
             // Change the status_id in the schedules table to 2 (cancelled)
-            updateScheduleStatement.setInt(1, ScheduleStatus.CANCELLED.getId());
+            updateScheduleStatement.setInt(1, ScheduleStatusRegistry.getByCode(ScheduleStatus.CANCELLED.name()).getStatusId());
             updateScheduleStatement.setInt(2, scheduleId);
             updateScheduleStatement.executeUpdate();
 
@@ -293,6 +292,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
             return Response.ok("Schedule Cancelled.").build();
 
         } catch (Exception e) {
+            e.printStackTrace();
 
             DBConnection.rollbackConnection(conn);
             System.out.println(e.getMessage());
@@ -318,9 +318,11 @@ public class BusSchedulesDAO implements ScheduleDAO {
      */
     public Response updateSchedule( SchedulesDTO schedulesDTO ) throws Exception {
 
-        // Check for valid user input parameters
-        if (ScheduleService.checkValidScheduleValues(schedulesDTO)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
+        // Check for valid schedule values consumed from the client.
+        Map<String, String> validScheduleValues = ScheduleService.checkValidScheduleValues(schedulesDTO);
+        if (validScheduleValues.get("allowed").equals("false")) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(validScheduleValues.get("message")).build();
+
         }
 
         LocalDate journeyDate;
@@ -331,6 +333,7 @@ public class BusSchedulesDAO implements ScheduleDAO {
             departure = LocalDateTime.parse(schedulesDTO.getDepartureTime());
             arrival = LocalDateTime.parse(schedulesDTO.getArrivalTime());
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println(e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input.").build();
         }

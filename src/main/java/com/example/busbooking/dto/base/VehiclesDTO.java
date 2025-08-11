@@ -1,9 +1,13 @@
 package com.example.busbooking.dto.base;
 
 
+import jakarta.validation.constraints.NotBlank;
+
 public class VehiclesDTO {
+    @NotBlank (message = "vehicleNumber cannot be blank")
     protected String vehicleNumber;
     protected int totalSeats;
+    @NotBlank (message = "operatorName cannot be blank")
     protected String operatorName;
 
     public VehiclesDTO() {}

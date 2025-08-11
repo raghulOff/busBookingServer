@@ -43,6 +43,11 @@ public class DBConstants {
     public static final String STOP_TYPE = "stop_type";
     //    Schedule seat status values (e.g. AVAILABLE, BOOKED, BLOCKED)
     public static final String SCHEDULED_SEAT_STATUSES = "scheduled_seat_statuses";
+    //    Permissions table for user permissions (E.g. VIEW_BOOKING_HISTORY, VIEW_HOME_PAGE)
+    public static final String PERMISSIONS = "permissions";
+    //    Table to map roles with permissions
+    public static final String ROLE_PERMISSIONS = "role_permissions";
+
 
 
     // Unique constraint violation

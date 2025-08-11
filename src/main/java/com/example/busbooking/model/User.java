@@ -1,12 +1,20 @@
 package com.example.busbooking.model;
 
-import jakarta.xml.bind.annotation.XmlRootElement;
+import com.example.busbooking.enums.Role;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
-@XmlRootElement
+
 
 public class User {
+    @NotNull(message = "Username is required")
+    @NotEmpty(message = "Username shouldn't be empty")
     private String username;
+
+    @NotNull(message = "Password is required")
+    @NotEmpty(message = "Password shouldn't be empty")
     private String password;
+
     private Role role;
     private int roleId;
     private int userId;

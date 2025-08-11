@@ -1,8 +1,10 @@
 package com.example.busbooking.filter;
 
-import com.example.busbooking.annotation.RolesAllowedCustom;
+import com.example.busbooking.annotation.PermissionsAllowed;
 
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Permission;
+
+import com.example.busbooking.registry.RolePermissionRegistry;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -13,9 +15,13 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
+
+
+/**
+ * Authorization filter that checks whether the user (based on roleId) has permission
+ * to access the requested resource, using {{@link PermissionsAllowed}} annotation.
+ */
 
 @Provider
 @Priority(Priorities.AUTHORIZATION)
@@ -35,7 +41,7 @@ public class RoleAuthorizationFilter implements ContainerRequestFilter {
         Method method = resourceInfo.getResourceMethod();
 
         // Get the Annotation values of requested method.
-        RolesAllowedCustom roleAnnotation = method.getAnnotation(RolesAllowedCustom.class);
+        PermissionsAllowed permissionsAllowed = method.getAnnotation(PermissionsAllowed.class);
 
         int roleId = (int) requestContext.getProperty("roleId");
         int userId = (int) requestContext.getProperty("userId");
@@ -45,21 +51,21 @@ public class RoleAuthorizationFilter implements ContainerRequestFilter {
 
 
         try {
-            // Add the annotation role values in the allowedRoles
-            List<Integer> allowedRoles = new ArrayList<>();
-            for (Role r : roleAnnotation.value()) {
-                allowedRoles.add(r.getId());
+            // Iterate through each permission defined in @PermissionsAllowed
+            for (Permission permission : permissionsAllowed.value()) {
+                // Check if the role has the required permission from the registry
+                if (RolePermissionRegistry.hasPermission(roleId, permission.name())) {
+                    // Propagate the user context and allow request to proceed
+                    requestContext.setProperty("userId", userId);
+                    requestContext.setProperty("roleId", roleId);
+                    requestContext.setProperty("username", username);
+                    return;
+                }
             }
+            // If none of the permissions match, deny access
 
-            // Check if the current roleId exist in the allowedRoles
-            if (!allowedRoles.contains(roleId)) {
-                requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("Insufficient permission").build());
-            }
+            requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("Insufficient permission").build());
 
-            // Chain the properties.
-            requestContext.setProperty("userId", userId);
-            requestContext.setProperty("roleId", roleId);
-            requestContext.setProperty("username", username);
 
         } catch (Exception e) {
             requestContext.abortWith(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Authorization failed").build());

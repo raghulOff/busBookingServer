@@ -9,6 +9,8 @@ import com.example.busbooking.service.BusService;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import org.postgresql.util.PSQLException;
+import org.postgresql.util.ServerErrorMessage;
+
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -43,8 +45,8 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
                 JOIN %s c1 ON r.source_city_id = c1.city_id
                 JOIN %s c2 ON r.destination_city_id = c2.city_id
                 WHERE 
-                    c1.city_name = ? AND 
-                    c2.city_name = ? AND 
+                    c1.city_id = ? AND 
+                    c2.city_id = ? AND 
                     s.journey_date = ? AND
                     s.status_id = 1
             """, SCHEDULES, ROUTES, BUSES, CITIES, CITIES);
@@ -77,14 +79,9 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
         }
 
-        String from = busSearchRequestDTO.getFrom();
-        String to = busSearchRequestDTO.getTo();
+        Integer fromCityId = busSearchRequestDTO.getFromCityId();
+        Integer toCityId = busSearchRequestDTO.getToCityId();
         String doj = busSearchRequestDTO.getDoj();
-
-        // Valid parameter check
-        if (from == null || to == null || doj == null || from.isEmpty() || to.isEmpty() || doj.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
-        }
 
         // List to return the bus search response based on the input parameters (from, to, doj)
         List<BusSearchResponseDTO> searchResponseList = new ArrayList<>();
@@ -93,8 +90,8 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(src_destination_bus_query)) {
 
-            stmt.setString(1, from);
-            stmt.setString(2, to);
+            stmt.setInt(1, fromCityId);
+            stmt.setInt(2, toCityId);
             stmt.setDate(3, Date.valueOf(doj)); // ensure `doj` is in yyyy-MM-dd format
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -213,6 +210,9 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
      */
 
     public Response update( BusVehiclesDTO busVehicleDTO ) throws Exception {
+        if (busVehicleDTO.getBusId() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid request body").build();
+        }
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement checkBusExistStatement = conn.prepareStatement(check_bus_exist);
@@ -243,7 +243,8 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
 
         } catch (SQLException exception) {
             System.out.println(exception.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error!").build();
+            exception.printStackTrace();
+            Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error!").build();
         }
         return Response.ok("Update Success!").build();
     }
@@ -273,7 +274,11 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
             conn.setAutoCommit(false);
 
             // add a new bus in the buses table and returns the generated bus id;
-            int busId = BusService.addNewBus(conn, busVehicleDTO);
+            Integer busId = BusService.addNewBus(conn, busVehicleDTO);
+
+            if (busId == null) {
+                return Response.status(Response.Status.CONFLICT).entity("There was a error in adding bus details into buses table (Bus with same details may already exist).").build();
+            }
 
             // this stores the details of no of rows for each column in the bus;
             BusService.addSeatGridColumns(conn, busVehicleDTO, busId);
@@ -286,6 +291,7 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
         } catch (PSQLException e) {
 
             rollbackConnection(conn);
+            System.out.println(e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Database error. Invalid request.")
                     .build();
@@ -299,6 +305,7 @@ public class BusVehiclesDAO implements VehicleDAO<BusVehiclesDTO> {
         } catch (Exception e) {
 
             rollbackConnection(conn);
+            System.out.println(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Something went wrong.").build();
 
         } finally {

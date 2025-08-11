@@ -1,7 +1,7 @@
 package com.example.busbooking.dao.user;
 
 import com.example.busbooking.db.DBConnection;
-import com.example.busbooking.model.Role;
+import com.example.busbooking.enums.Role;
 import com.example.busbooking.model.User;
 import com.example.busbooking.security.PasswordUtil;
 import com.example.busbooking.service.AuthService;
@@ -66,6 +66,7 @@ public class UserDAO {
 
             DBConnection.rollbackConnection(conn);
             System.out.println(e.getMessage());
+            e.printStackTrace();
             throw e;
 
         } finally {

@@ -142,7 +142,7 @@ public class LocationsDAO {
             conn.setAutoCommit(false);
 
             // Add new location and return the generated Location ID
-            Integer locationId = LocationService.addLocationReturnGeneratedID(locationName, conn);
+            Integer locationId = LocationService.insertLocationDetails(locationName, conn);
 
             if (locationId == null) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Database error.").build();

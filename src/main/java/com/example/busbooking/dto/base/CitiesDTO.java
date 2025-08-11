@@ -1,9 +1,12 @@
 package com.example.busbooking.dto.base;
 
 
+import jakarta.validation.constraints.NotBlank;
+
 public class CitiesDTO {
+    @NotBlank (message = "cityName cannot be blank")
     private String cityName;
-    private int cityId;
+    private Integer cityId;
 
     public CitiesDTO() {
     }
@@ -11,16 +14,16 @@ public class CitiesDTO {
     public CitiesDTO( String cityName ) {
         this.cityName = cityName;
     }
-    public CitiesDTO( int cityId, String cityName ) {
+    public CitiesDTO( Integer cityId, String cityName ) {
         this.cityName = cityName;
         this.cityId = cityId;
     }
 
-    public int getCityId() {
+    public Integer getCityId() {
         return cityId;
     }
 
-    public void setCityId( int cityId ) {
+    public void setCityId( Integer cityId ) {
         this.cityId = cityId;
     }
 

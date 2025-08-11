@@ -70,11 +70,6 @@ public class CitiesDAO {
 
     public Response addNewCity( CitiesDTO citiesDTO ) throws Exception {
 
-        // Check for valid parameters
-        if (citiesDTO == null || citiesDTO.getCityName() == null || citiesDTO.getCityName().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid input").build();
-        }
-
         try (Connection conn = DBConnection.getConnection()) {
 
             // ADD a new city
@@ -105,7 +100,6 @@ public class CitiesDAO {
 
     public Response delete( int cityId ) throws Exception {
 
-        PreparedStatement checkCityExistStatement = null, statement = null, checkCityLinkedToRouteStatement = null, deleteCityLocationStatement = null;
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();

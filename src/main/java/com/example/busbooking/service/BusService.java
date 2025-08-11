@@ -55,17 +55,18 @@ public class BusService {
      * @throws Exception if the input is invalid or insertion fails
      */
 
-    public static int addNewBus( Connection conn, BusVehiclesDTO busVehicleDTO ) throws Exception {
-        String vehicleNumber = busVehicleDTO.getVehicleNumber();
-        String operatorName = busVehicleDTO.getOperatorName();
-        String busType = busVehicleDTO.getBusType();
-        Integer totalColumns = busVehicleDTO.getTotalColumns();
+    public static Integer addNewBus( Connection conn, BusVehiclesDTO busVehicleDTO ) throws Exception {
 
-        // Check for valid parameters.
-        if (vehicleNumber == null || operatorName == null || busType == null || totalColumns == null
-                || vehicleNumber.isEmpty() || operatorName.isEmpty() || busType.isEmpty() || totalColumns == 0 || totalColumns > 6) {
-            throw new BadRequestException("Invalid input");
-        }
+//        String vehicleNumber = busVehicleDTO.getVehicleNumber();
+//        String operatorName = busVehicleDTO.getOperatorName();
+//        String busType = busVehicleDTO.getBusType();
+//        Integer totalColumns = busVehicleDTO.getTotalColumns();
+//
+//        // Check for valid parameters.
+//        if (vehicleNumber == null || operatorName == null || busType == null || totalColumns == null
+//                || vehicleNumber.isEmpty() || operatorName.isEmpty() || busType.isEmpty() || totalColumns == 0 || totalColumns > 6) {
+//            throw new BadRequestException("Invalid input");
+//        }
 
         // Add the bus details into the BUSES table.
         try (PreparedStatement statement = conn.prepareStatement(insert_into_buses_table_query, Statement.RETURN_GENERATED_KEYS);) {
@@ -76,16 +77,14 @@ public class BusService {
             statement.setInt(4, busVehicleDTO.getTotalColumns());
 
             statement.executeUpdate();
-            int busId;
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                busId = 0;
 
                 if (generatedKeys.next()) {
-                    busId = generatedKeys.getInt(1);
+                    return generatedKeys.getInt(1);
                 }
             }
 
-            return busId;
+            return null;
         }
 
     }
@@ -106,22 +105,22 @@ public class BusService {
 
         try (PreparedStatement statement = conn.prepareStatement(insert_into_seat_grid_columns_query);) {
 
-            // Check for valid parameters
-            if (busVehicleDTO.getSeatGridCount() == null || busVehicleDTO.getSeatGridCount().isEmpty()) {
-                throw new BadRequestException("Invalid input.");
-            }
+//            // Check for valid parameters
+//            if (busVehicleDTO.getSeatGridCount() == null || busVehicleDTO.getSeatGridCount().isEmpty()) {
+//                throw new BadRequestException("Invalid input.");
+//            }
 
             // Traversing through each column of the bus seat layout and getting the total no of rows for each column.
             for (BusVehiclesDTO.SeatGridCount seatGridCount : busVehicleDTO.getSeatGridCount()) {
-                Integer colNumber = seatGridCount.getCol_number();
-                Integer totalRows = seatGridCount.getTotal_rows();
-                String pos = seatGridCount.getPos();
-
-                // Check for valid parameters.
-                if (colNumber == null || totalRows == null || pos == null || colNumber > busVehicleDTO.getTotalColumns() || colNumber < 1
-                        || totalRows < 0 || totalRows > 15 || (!pos.equals("UPPER") && !pos.equals("LOWER"))) {
-                    throw new BadRequestException("Invalid input");
-                }
+//                Integer colNumber = seatGridCount.getCol_number();
+//                Integer totalRows = seatGridCount.getTotal_rows();
+//                String pos = seatGridCount.getPos();
+//
+//                // Check for valid parameters.
+//                if (colNumber == null || totalRows == null || pos == null || colNumber > busVehicleDTO.getTotalColumns() || colNumber < 1
+//                        || totalRows < 0 || totalRows > 15 || (!pos.equals("UPPER") && !pos.equals("LOWER"))) {
+//                    throw new BadRequestException("Invalid input");
+//                }
 
                 // For each column, total rows that column holds is inserted.
                 statement.setInt(1, busId);
